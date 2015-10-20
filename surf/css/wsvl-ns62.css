@@ -1,0 +1,22 @@
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #000000;
+	background-color: #E5EFF5;
+	line-height: 18px;
+	margin: 0px;
+}
+.contentArea {
+	width: 776px;
+	float: left;
+	clear: both;
+	border-left: 2px solid #006699;
+	border-right: 2px solid #006699;
+	border-bottom: 2px solid #006699;
+	margin-left: 10%;
+ 	background-color: #F6E278;
+	background-attachment: scroll;
+	background-image: url(../images/contentarea_bck.gif);
+	background-repeat: repeat-y;
+	background-position: left top;
+}

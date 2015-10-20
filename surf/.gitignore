@@ -1,0 +1,8 @@
+*.php~
+*.js~
+*.tpl~
+*.htm~
+css/start/images/animated-overlay.gif
+css/start/
+*.swp
+library/tags

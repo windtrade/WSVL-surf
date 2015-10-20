@@ -1,0 +1,772 @@
+body {
+	font-family: Verdana, Arial, Geneva, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #000000;
+	background-color: #E5EFF5;
+	line-height: 18px;
+	margin: 0px;
+}
+div.footerTxt {
+	/*position: absolute;
+	bottom: 0px;*/
+}
+a:link {
+	color: #003399;
+	font-weight: bold;
+	text-decoration: underline;
+}
+a:visited {
+	color: #003399;
+	font-weight: bold;
+	text-decoration: underline;
+}
+a:hover {
+	color: #42ADE3;
+	font-weight: bold;
+	text-decoration: underline;
+}
+a:active {
+	color: #003399;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.forumlink, .forumlink a, .forumlink a:link, .forumlink a:visited, .forumlink a:hover, .forumlink a:active {
+	color: #006699;
+}
+.gensmall a, .gensmall a:link, .gensmall a:visited, .gensmall a:hover, .gensmall a:active {
+	color: #006699;
+	font-weight: normal;
+}
+
+.verder {
+	margin-top: -18px;
+	float: right;
+	clear: both;
+}
+
+#centerD {
+	margin-left: auto; margin-right: auto; width: 100%; text-align: left;
+}
+.contentArea {
+	width: 776px;
+	float: left;
+	clear: both;
+	border-left: 2px solid #006699;
+	border-right: 2px solid #006699;
+	border-bottom: 2px solid #006699;
+	margin-left: 10%;
+ 	background-color: #F6E278;
+	background-attachment: scroll;
+	background-image: url(../images/contentarea_bck.gif);
+	background-repeat: repeat-y;
+	background-position: left top;
+}
+.navHeader {
+	background-color: #FCF7D7;
+	height: 97px;
+	background-attachment: scroll;
+	background-image: url(../images/logo_background.gif);
+	background-repeat: no-repeat;
+	background-position: left top;
+	border-bottom: 5px solid #FFFFFF;
+}
+.navHeader #logo {
+	float: left;
+	clear: right;
+	align: center;
+	text-align: center;
+	padding: 0px 5px 0px 5px;
+}
+.navHeader h1 {
+	text-indent: -9000px;
+	float: left;
+	clear: right;
+	align: center;
+	text-align: center;
+	padding: 0;
+	margin: 0;
+	line-height: 0;
+	padding: 0px 5px 0px 5px;
+	height: 56px;
+	width: 100%;
+	background-image: url(../images/logo.gif);
+	background-repeat: no-repeat;
+	background-position: left top;
+
+}
+.navHeader ul {
+	float: left;
+	width: 720px;
+	margin-top: 1px;
+	padding: 5px 0px 5px 0px;
+	font-family: Helvetic, Arial, san-serif;
+	font-weight: bold;
+	color: #006699;
+	font-size: 13px;
+	list-style-type: none;
+	display: inline;
+}
+.navHeader li {
+	padding: 5px 0px 5px 0px;
+	display: inline;
+	text-align: justify;
+	font-size: 11px;
+	font-weight: bold;
+}
+.navHeader a, .navHeader a:link, .navHeader a:visited, .navHeader a:active {
+	padding: 3px 10px 3px 10px;
+	color:#006699;
+	text-decoration: none;
+}
+.navHeader a:hover {
+	background-color: #FFF200;
+}
+.current {
+	background-color: #FBDB33;
+}
+
+#heterKader {
+	background-color: #0392D9;
+	width: 100%;
+	float: left;
+	clear: both;
+	background-attachment: scroll;
+	background-image: url(../images/heter_back.gif);
+	background-repeat: no-repeat;
+	background-position: left top;
+}
+#heterInfoKader {
+	background-color: #0392D9;
+	width: 100%;
+	float: left;
+	clear: both;
+/*
+	background-attachment: scroll;
+	background-image: url(../images/nieuwsbrief_aanm_bck_l.gif);
+	background-repeat: no-repeat;
+	background-position: right top;
+*/
+	background-attachment: scroll;
+	background-image: url(../images/heter_bottom_bck.gif);
+	background-repeat: repeat-x;
+	background-position: left bottom;
+
+	padding-bottom: 17px;
+}
+#heterFoto {
+	margin-right: 8px;
+	float: left;
+	margin: 3px;
+	margin-top: 5px;
+	border: 1px solid #000000;
+}
+#newsPhoto {
+	margin-right: auto;
+	margin-left: auto;
+	margin: 3px;
+	margin-top: 5px;
+	border: 1px solid #000000;
+}
+#heterContent {
+	float: right;
+	width: 59%;
+	color: #FFFFFF;
+	padding: 3px;
+}
+#heterForumContent {
+	float: right;
+	width: 95%;
+	height: 75px;
+	color: #FFFFFF;
+	padding: 3px;
+	clear: right;
+}
+.heterTitel, #heterContent h3 {
+	font-family: Arial, Geneva, Helvetica, sans-serif, Verdana;
+	font-size: 18px;
+	font-weight: bolder;
+	letter-spacing: -0.04em;
+	padding: 0px;
+	margin: 0px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+.heterTitel a {
+	color: #000000;
+	text-decoration:none;
+}
+.heterTitel a:hover {
+	color: #000000;
+	text-decoration:underline;
+}
+
+#heterContent p {
+	font-size: 10pt;
+	line-height: 13pt;
+}
+#heterLeesverder {
+	float: right;
+	margin-top: 8px;
+/* --- alleen voor Exploder --- 
+	margin-top: -10px;
+/* ---------------------------- */
+	margin-right: 25px;
+}
+.heterBottom {
+	float: right;
+	text-align: right;
+/* --- alleen voor Exploder --- 
+	margin-top: -23px;
+/* ---------------------------- */
+	height: 47px;
+	width: 100%;
+	margin-right: 0px;
+	background-attachment: scroll;
+	background-image: url(../images/heter_bottom_bck.gif);
+	background-repeat: repeat-x;
+	background-position: left top;
+}
+
+.tweeDelen {
+	float: left;
+	width: 100%;
+	background-color: #F6E278;
+	height: 100%;
+	background-attachment: scroll;
+	background-image: url(../images/tweedelen_bck.gif);
+	background-repeat: repeat;
+	background-position: left top;
+}
+.eengrootDeel {
+	float: left;
+	width: 100%;
+	background-color: #F6E278;
+	height: 100%;
+}
+.titelBalk {
+	height: 23px;
+	width: 100%;
+	background-attachment: scroll;
+	background-image: url(../images/overgangs-streep.gif);
+	background-repeat: repeat-x;
+	background-position: left top;
+}
+.titelBalk img {
+	margin-left: 25px;
+}
+.linkerDeel {
+	float: left;
+	width: 60%;
+	height: 100%;
+/*	background-color: #F6E278; */
+	padding: 0px;
+	margin: 0px;
+}
+.linkerDeel p img, #infoTeksten img {
+	border: 1px solid #000000;
+	margin: 4px;
+}
+
+.linkerDeel2 {
+	float: left;
+	width: 100%;
+	height: 100%;
+	background-color: #F6E278;
+}
+.rechterDeel {
+	float: right;
+	width: 40%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+.fiftyfiftyLinks {
+	float: left;
+	width: 50%;
+	height: 100%;
+	background-color: #F6E278;
+}
+.fiftyfiftyRechts {
+	float: right;
+	width: 50%;
+	height: 100%;
+	background-color: #FAF0B6;
+}
+
+.linkerDeel p {
+	padding: 5px;
+}
+.recentNieuwsKader {
+	padding: 1px;
+	/*	border-left: 1px dashed #006699; */
+	margin: 0px;
+	clear: both;
+}
+.recentNieuwsKader p, .recentNieuwsKader .nieuwsTitel {
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 0px;
+	margin-top: 2px;
+}
+.recentNieuwsBericht {
+	padding-top: 4px;
+	border-bottom: 1px dashed #006699;
+}
+.nieuwsTitel {
+	font-weight: bold;
+}
+.objTitel {
+	font-weight: bold;
+	font-size: 14px;
+	margin-left: 2%;
+}
+.objDatum {
+	font-weight: normal;
+	font-size: 10px;
+	margin-left: 2%;
+}
+.kalenderGeweestWhite {
+	text-decoration: line-through;
+	color: #FFFFFF;
+}
+.kalenderGeweestBlack {
+	text-decoration: line-through;
+	color: #000000;
+}
+.kalenderGeweest {
+	text-decoration: line-through;
+}
+
+.backgroundBlauw {
+	background-color: #42ADE3;
+	color: #FFFFFF;
+	border-top: 1px solid #006699;
+	border-bottom: 1px solid #006699;
+	margin-top: -2px;
+}
+.backgroundGeel {
+	background-color: #EECB09;
+	color: #000000;
+	border-top: 1px solid #006699;
+	border-bottom: 1px solid #006699;
+	margin-top: -2px;
+}
+.onzesurferKader {
+	width: 772px;
+	float: left;
+	clear: both;
+	padding: 2px;
+}
+
+.surferKader {
+	width: 462px;
+	float: left;
+	clear: both;
+	padding: 2px 2px;
+	margin: 0px;
+}
+
+.galleryThumb {
+	border: 1px solid #000000;
+	margin: 2px;
+}
+.surferFoto {
+	float: left;
+	padding: 3px;
+	width: 135px;
+}
+.surferFoto img {
+	border: 1px solid #000000;
+}
+
+.surferDesc {
+	float: left;
+	width: 66%;
+	padding-bottom: 10px;
+	font-weight:normal;
+}
+
+.artikelKader {
+	border-top: 1px dashed #006699;
+	float: left;
+	clear: both;
+	margin-top: -1px;
+	width: 100%;
+	display: block;
+}
+.kad1 {
+	background-color: #FEEB9E;	
+}
+.artikelKader p {
+	padding: 3px;
+	padding-left: 1%;
+	clear: both;
+}
+.artikelKader p img {
+	border: 1px solid #000000;
+	margin: 3px;
+}
+.artikelKader .heterTitel {
+	padding-left: 1%;
+}
+.verder {
+	margin-top: 8px;
+	float: left;
+	clear: both;
+	width: 99%;
+	border-top: 1px solid #EECB09;
+	border-bottom: 10px solid #EECB09;
+	font-size: 10px;
+	text-align:right;
+	padding-top: 4px;
+	padding-right: 6px;
+	padding-bottom: 6px;
+	color:#666666;
+}
+.verderAuteurinfo {
+	float: left;
+	padding-left: 4px;
+}
+.verslagHomeAuteurInfo {
+	color:#006699;
+	font-size: 10px;
+	border-bottom: 1px solid #EECB09;
+	padding: 2px 0px 2px 4px;
+	margin-bottom: 6px;
+	background-color: #FDEB8E;
+	width: 99%;
+}
+.verslagKader {
+	padding: 7px;
+	padding-top: 2px;
+	margin: 8px;
+	border: 2px solid #EECB09;
+	background-color: #FAF0B6;
+}
+.verslagAuteurInfo {
+	color:#666666;
+	font-size: 10px;
+	border-bottom: 1px solid #EECB09;
+	padding-bottom: 2px;
+	margin-bottom: 6px;
+/*	background-color: #FDEB8E; */
+}
+.verslagKader .verslagAuteurInfo {
+	color: #666666;
+	font-size: 10px;
+	border-bottom: 1px solid #EECB09;
+	padding-bottom: 2px;
+	margin-bottom: 6px;
+}
+.miniLeesverder {
+	float: right;
+	clear: left;
+	margin-top: -2px;
+	margin-bottom: 2px;
+}
+.linkerDeel td {
+	font-size: 11px;
+	height: 32px;
+}
+.footerTxt {
+	font-size: 10px;
+	color: #000000;
+	float: left;
+	clear: both;
+	margin-left: 10%;
+	width: 775px;
+	text-align:center;
+	height: 32px;
+}
+.footerTxt img {
+	margin: 15px;
+}
+.rechterDeel ul {
+	list-style-position: inside;
+	list-style-type: square;
+}
+.infoItems {
+	padding-left: 15px;
+}
+
+.reactiesKader {
+	border: 2px solid #E7AA05;
+	background-color: #FAF0B6;
+	margin: 0px 8px 8px;
+}
+.reactiesKop {
+	margin-left: 12px;
+}
+.reactie {
+	border-bottom: 1px dashed #EECB09;
+}
+.reactieSchrijverInfo {
+	border-bottom: 1px solid #EECB09;
+	font-size: 10px;
+	color: #999999;
+	font-weight: normal;
+	padding: 3px;
+}
+.reactieskader p {
+	padding: 2px;
+	font-size: 11px;
+}
+.pdfKader {
+	border: 1px dashed #003399;
+	background-color: #C0E8F7;
+	padding: 8px;
+	padding-left: 45px;
+	padding-bottom: 16px;
+	margin-left: 8px;
+	width: 80%;
+	background-attachment: scroll;
+	background-image: url(../images/pdf.gif);
+	background-repeat: no-repeat;
+	background-position: 5px 5px;
+}
+.subscrNieuwsbrief {
+	background: url(../images/aanm_nwsbrf_bck_stamp.gif) no-repeat scroll right top;
+	border-bottom: 1px dashed #006699;
+}
+.subscrNieuwsbrief p {
+	color: #000000;
+	font-weight: bold;
+	line-height: 18px;
+}
+
+.rechterDeel ul {
+	padding: 0px;
+	margin: 0px;
+	list-style-type:none;
+	border-left: 2px solid #F6E278;
+	border-right: 2px solid #F6E278;
+	width: 304px;
+	margin-left: -3px;
+	margin-top: -5px;
+}
+.rechterDeel ul li {
+	list-style-type:none;
+	margin: 0px;
+	padding: 0px;
+	margin-top: -2px;
+}
+.rechterDeel ul li a {
+	padding: 6px 2px;
+	display: block;
+	border-bottom: 2px solid #F6E278;
+	font-size: 10px;
+	font-weight: normal;
+	text-decoration: none;
+}
+.rechterDeel ul li a:hover {
+	display: block;
+	border-bottom: 2px solid #FFFFFF;
+	background-color: #EECB09;
+	color: #000000;
+	font-weight: normal;
+}
+.rechterDeel .newsCurrent {
+	display: block;
+	border-bottom: 2px solid #F9EDB0;
+	background-color: #F6E278;
+	color: #000000;
+	font-weight: normal;
+}
+
+.infoKader {
+	float: left;
+	width: 50%;
+	border-right: 2px solid #FFFFFF;
+	margin: 0px;
+	padding: 0px;
+}
+.infoKader a {
+	display: block;
+	font-weight: normal;
+	text-decoration: none;
+}
+.infoButton {
+	float: left;
+	clear: left;
+	border-bottom: 1px dashed #FFFFFF;
+	padding: 5px;
+	color: #FFFFFF;
+	width: 378px;
+	display: block;
+}
+.infoKader a:hover .infoButton {
+	background-color:#35A8E1;
+	font-weight: normal;
+}
+.recentNieuwsKader .infoButton {
+	float: left;
+	clear: left;
+	border-bottom: 1px dashed #FFFFFF;
+	padding: 5px;
+	color: #FFFFFF;
+	background-color:#0392D9;	
+	width: 299px;
+	display: block;
+}
+.recentNieuwsKader a {
+	font-weight: normal;
+	text-decoration: none;
+}
+.recentNieuwsKader a:hover .infoButton {
+	background-color:#35A8E1;
+	font-weight: normal;
+}
+.infoKader a .infoSelected {
+	background-color:#03A2DF;
+	font-weight: normal;
+	color: #012774;
+}
+
+.infoKader a:link .infoButton, .infoKader a:visited .infoButton, .infoKader a:active .infoButton {
+	font-weight: normal;
+	text-decoration: none;
+}
+
+.titel {
+	font-family: Arial, Geneva, Helvetica, sans-serif, Verdana;
+	font-size: 18px;
+	font-weight: bold;
+	letter-spacing: -0.04em;
+}
+.infoButton img {
+	margin : 3px;
+	margin-top: 0px;
+	margin-right: 8px;
+	float: left;
+	border: 1px solid #000000;
+}
+.nieuwsbriefBox {
+	width: 47%;
+	background-attachment: scroll;
+	background-image: url(../images/nieuwsbrief_aanm_bck_l.gif);
+	background-repeat: no-repeat;
+	background-position: right top;
+	color: #FFFFFF;
+	padding: 10px;
+	float: right;
+}
+.nieuwsbriefBoxBottom {
+	background-attachment: scroll;
+	background-image: url(../images/heter_dan_de_nieuwsbrief.gif);
+	background-repeat: no-repeat;
+	background-position: right bottom;
+}
+.nieuwsbriefBox p {
+	padding: 6px;
+}
+
+.sPrubr1 {
+	background: url(../images/bck_inf_surfclub.gif) no-repeat scroll right bottom;
+}
+.sPrubr3 {
+	background-attachment: scroll;
+	background-image: url(../images/bck_inf_surfles.gif);
+	background-repeat: no-repeat;
+	background-position: right bottom;
+}
+.sPrubr2 {
+	background-attachment: scroll;
+	background-image: url(../images/bck_inf_lidworden.gif);
+	background-repeat: no-repeat;
+	background-position: right bottom;
+}
+.sPrubr4 {
+	background-attachment: scroll;
+	background-image: url(../images/bck_inf_surfpool.gif);
+	background-repeat: no-repeat;
+	background-position: right bottom;
+}
+.sPrubr5 {
+	background-attachment: scroll;
+	background-image: url(../images/bck_inf_trainingen.gif);
+	background-repeat: no-repeat;
+	background-position: right bottom;
+}
+.infoMeer {
+	padding: 2%;
+	width: 90%;
+}
+.infoMeer img {
+	border: 1px solid #000000;
+	margin: 6px;
+}
+#bstFto {
+	margin-right: 5px;
+	margin-bottom: 3px;
+	margin-top: 3px;
+}
+#uitslagen {
+	margin-left: 15px;
+	padding: 10px;
+	padding-left: 42px;
+	background-attachment: scroll;
+	background-image: url(http://surf.wvleidschendam.nl/images/pdf.gif);
+	background-repeat: no-repeat;
+	background-position: left center;
+	text-align: left;
+	vertical-align: middle;
+	display: block;
+}
+.trainingAanmeldingen {
+	width: 295px;
+	float: left;
+	margin-left: 0px;
+	margin-right: 5px;
+	background-attachment: scroll;
+	background-image: url(images/solid-dashed-bck.gif);
+	background-repeat: no-repeat;
+	background-position: right top;
+}
+.trainingAanmeldingen ul {
+	width: 95%;
+	margin: 3px;
+	padding: 3px;
+	list-style-type: square;
+}
+.trainingAanmeldingen ul li {
+	margin: 0px;
+	padding: 3px;
+	padding-left: 5px;
+	color: #DAF1FA;
+	border-bottom: 1px dashed #FFFFFF;
+	list-style-position: outside;
+	list-style-type: square;
+	width: 95%;
+}
+.trainingAanmeldingen ul li a {
+	padding: 3px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	color: #DAF1FA;
+	font-weight: bold;
+	text-decoration: none;
+	width: 100%;
+	display: block;
+}
+.trainingAanmeldingen ul li a.surfpool {
+	background: url(../images/bck-surfpool.gif) no-repeat scroll right center;
+}
+.trainingAanmeldingen ul li a:hover {
+	color: #FFFFFF;
+}
+.trainingAanmeldingen ul li a:visited {
+	color: #DAF1FA;
+	text-decoration: none;
+	font-style: italic;
+} 
+.trainingAanmeldingen ul li a.afgemeld {
+	text-decoration: line-through;
+	color: #000066;
+}
+.trainingAanmeldingen ul li em {
+	padding-left: 12px;
+	font-size: 10px;
+	line-height: 11px;
+}

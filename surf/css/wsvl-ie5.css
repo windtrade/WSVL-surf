@@ -1,0 +1,47 @@
+.navHeader {
+	background-color: #FCF7D7;
+	height: 97px;
+	background-attachment: scroll;
+	background-image: url(../images/logo_background.gif);
+	background-repeat: no-repeat;
+	background-position: left top;
+	border-bottom: 5px solid #FFFFFF;
+}
+#heterKader {
+	background-color: #0392D9;
+	width: 100%;
+	float: left;
+	clear: both;
+	background-attachment: scroll;
+	background-image: url(../images/heter_back.gif);
+	background-repeat: no-repeat;
+	background-position: left top;
+}
+.heterBottom {
+	float: right;
+	text-align: right;
+	margin-top: -23px;
+	height: 47px;
+	width: 100%;
+	background-attachment: scroll;
+	background-image: url(/images/heter_bottom_bck.gif);
+	background-repeat: repeat-x;
+	background-position: left top;
+}
+.artikelKader { 
+	border-top: 1px dashed #006699; 
+	float: left; 
+	clear: both; 
+	margin-top: -1px; 
+	width: 99%; 
+	display: block; 
+}
+.tweeDelen {
+	float: left;
+	width: 100%;
+	background-color: #F6E278;
+	background-attachment: fixed;
+	background-image: url(../images/tweedelen_bck.gif);
+	background-repeat: repeat;
+	background-position: left top;
+}
