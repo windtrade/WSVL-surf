@@ -49,18 +49,21 @@
 {if $elt.value != "" || !$elt.protected}
 <tr>
 {HFlabeledField prefix="fd[users]" data=$elt}
+</tr>
 {/if}
 {/foreach}
-<tr>
-<input type="hidden" name="fd[eventRegister][id]" value="{$currentEventItem.id}" />
-<input type="hidden" name="fd[eventRegister][start]" value="{$currentEventItem.start}" />
 {if $NOROBOT != "OK"}
 <tr>{HFrecaptcha}</tr>
 {/if}
-<td><input type="submit" name="fd[command]" value="{$command}"/></td>
+<tr>
+<td>
+<input type="hidden" name="fd[eventRegister][id]" value="{$currentEventItem.id}" />
+<input type="hidden" name="fd[eventRegister][start]" value="{$currentEventItem.start}" />
+<input type="submit" name="fd[command]" value="{$command}"/>
+</td>
 <td><input type="reset" value="WISSEN"/></td>
 </tr>
-</table
+</table>
 </form>
 </div>
 </div>
@@ -108,11 +111,9 @@
 {/block}
 {block name="rechterDeel"}
 <div class="recentNieuwsKader">
-<ul>
-<ul>
-<form id="hiddenSearch" method="POST" action="{$smarty.server.REQUEST_URI}">
-<input type="hidden" name="action" value="showEvent">
-<input type="hidden" name="fd[event][id]" value="">
+<form id="hiddenSearch" method="GET" action="{$smarty.server.REQUEST_URI}">
+<input type="hidden" name="action" value="showEvent"/>
+<input type="hidden" name="fd[event][id]" value=""/>
 </form>
 {foreach $rightColumns item=group}
 {foreach $data.$group.dates item=event}
@@ -125,12 +126,10 @@
 <tr>
 <td>{if $start.date != $lastDate}{$lastDate=$start.date}{$start.date}{/if}</td>
 <td>{$start.time}</td>
-{/foreach}
 </tr>
 {/foreach}
 </table>
 {/foreach}
-</ul>
-</ul>
+{/foreach}
 </div>
 {/block}

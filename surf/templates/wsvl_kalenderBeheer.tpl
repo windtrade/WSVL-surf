@@ -128,7 +128,7 @@
 <div class="recentNieuwsKader">
 <ul>
 <ul>
-<form id="hiddenSearch" method="POST" action="{$smarty.server.REQUEST_URI}">
+<form id="hiddenSearch" method="GET" action="{$smarty.server.REQUEST_URI}">
 <input type="hidden" name="action" value="showEvent">
 <input type="hidden" name="fd[event][id]" value="">
 </form>

@@ -37,13 +37,13 @@ Daarom vragen we je het formulier in te vullen als je van plan bent om te komen.
 {if $currentUserId < 0 or count($userList)==0}
 <table>
 <tr><td><strong>Roepnaam</strong></td>
-<td><input type="text" size="30" name="fd[user][roepnaam]"</td></tr>
+<td><input type="text" size="30" name="fd[user][roepnaam]"></td></tr>
 <tr><td><strong>Voorvoegsel</strong></td>
-<td><input type="text"size="30"  name="fd[user][voorvoegsel]"</td></tr>
+<td><input type="text" size="30"  name="fd[user][voorvoegsel]"></td></tr>
 <tr><td><strong>Achternaam</strong></td>
-<td><input type="text"size="30"  name="fd[user][naam]"</td></tr>
+<td><input type="text" size="30" name="fd[user][naam]"></td></tr>
 <tr><td><strong>Email</strong></td>
-<td><input type="text"size="30"  name="fd[user][email]"</td></tr>
+<td><input type="text" size="30" name="fd[user][email]"></td></tr>
 <tr><td colspan="2">(Als je 18- bent: van een ouder/verzorger)</td></tr>
 {if $NOROBOT != "OK"}
 <tr>{HFrecaptcha}</tr>
@@ -119,14 +119,14 @@ trainingsbijdrage</a> vindt je op de <a href="http://{$smarty.server.SERVER_NAME
 <div class="recentNieuwsBericht">
 <span class="nieuwsTitel">Dinsdagavondprogramma </span><br />
 <span class="nieuwsAuteur"></span>
-<p>18:15 - Aankomst<br>
-18:20 - Optuigen<br>
-18:45 - Surfpak aantrekken<br>
-19:00 - Voorbespreking van de training<br>
-19:10 - Het water op<br>
-20:30 - Nabespreken en evalueren<br>
+<p>18:15 - Aankomst<br/>
+18:20 - Optuigen<br/>
+18:45 - Surfpak aantrekken<br/>
+19:00 - Voorbespreking van de training<br/>
+19:10 - Het water op<br/>
+20:30 - Nabespreken en evalueren<br/>
 20:45 - Opruimen
-<br>
+<br/>
 </p>
 </div>
 <div class="recentNieuwsBericht">
@@ -144,5 +144,6 @@ je spullen optuigen duurt altijd langer dan je denkt.</p>
 <span class="nieuwsAuteur"></span>
 <p>Heb je jezelf al aangemeld voor de komende training, maar gaat het je om wat voor reden toch niet lukken om er bij te zijn? 
 <a href="training_afmelden.php">Meld je dan even af</a>.</p>
+</div>
 </div>
 {/block}

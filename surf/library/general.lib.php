@@ -643,6 +643,25 @@ function genRegisterEvent($eventList, &$fd)
     }
 }
 
+// Write to public_html/files/logYYYYMMDD.txt
+function genLogVar($name, $var)
+{
+    $text = $name."=".print_r($var, true);
+    $label = __FILE__;
+    $label = preg_replace('/(public_html)(.).*/','$1$2files$2log_',$label);
+    $dt = new DateTime();
+    $label.= $dt->format('Ymd').'.txt';
+    $fh = fopen($label, 'a');
+    if (!$fh) {
+        genSetError("Unable to open $label ");
+        return;
+    }
+    fwrite($fh, $_SERVER["REQUEST_URI"]."\n");
+    fwrite($fh, $dt->format("d-m-Y H:i:s\n"));
+    fwrite($fh, $text."\n");
+    fclose($fh);
+}
+
 /*
  * if you want to change or check the cost of password encryption
  * un-comment this block

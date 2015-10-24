@@ -153,8 +153,6 @@ class kalenderbeheer
 	}
 	$data["image"]["eventId"] = $data["event"]["id"];
 	$data["image"]["category"] = $data["event"]["category"];
-	#genDumpVar(__FUNCTION__."image", $data["image"]);
-	#genDumpVar(__FUNCTION__."_FILES", $_FILES);
 	$data["image"]["fileField"] = "fd__image__img";
 	if ($this->image->insert($data["image"])) {
 	    $oldEvent = $data["event"];
@@ -259,7 +257,8 @@ class kalenderbeheer
 	} else {
 	    $action = "";
 	}
-	$currentId = 0;
+    
+    $currentId = 0;
 	if (array_key_exists("fd", $_REQUEST)) {
 	    $formData = $_REQUEST["fd"];
 	    if (array_key_exists("event", $formData)) {

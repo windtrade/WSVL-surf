@@ -15,17 +15,15 @@ class htmlforms
 	}
 	$result .= "<input type=\"".$pd["type"]."\"";
 	if (array_key_exists("size",$pd)) {
-	    $result .= ' size="'.$pd["size"];
+	    $result .= ' size="'.$pd["size"].'"';
 	} else {
 	    $result .= ' size="50"';
 	}
 	if (array_key_exists("placeholder", $pd)) {
-	    $result .= "placeholder=\"".$pd["placeholder"]."\"";
+	    $result .= " placeholder=\"".$pd["placeholder"]."\"";
 	}
-	if (array_key_exists("size", $pd)) {
-	    $result .= "size=\"".$pd["size"]."\"";
-	}
-	$result .=  "name=\"".$name."\" value=\"".$pd["value"]."\" /></td>";
+    
+	$result .=  " name=\"".$name."\" value=\"".$pd["value"]."\" /></td>";
 
 	return $result;
     }
@@ -142,6 +140,7 @@ class htmlforms
 	} else {
 	    $result = $this->otherField($name, $pd);
 	}
+    $result .= "<!-- ".print_r($pd, true). " -->";
 	return $result;
     }
 

@@ -65,7 +65,7 @@ Je kunt de lijst later altijd weer wijzigen.
 <div class="recentNieuwsKader">
 <ul>
 <ul>
-<form id="hiddenSearch" method="POST" action="{$smarty.server.REQUEST_URI}">
+<form id="hiddenSearch" method="GET" action="{$smarty.server.REQUEST_URI}">
 <input type="hidden" name="fd_search_id" value="">
 </form>
 {foreach from=$calendarList item=item}
