@@ -117,8 +117,6 @@ class eventRegistation
      */
     private function processFormData(&$cR, $formData)
     {
-	// genDumpVar("formData=", $formData);
-	// genDumpVar("cR=", $cR);
 	$keys = array_keys($formData["calendar"]);
 	sort($keys);
 	$regs = array();

@@ -1,5 +1,5 @@
 {*
- * wsvl_kalenderBeheer.tpl template for calendar management
+ * wsvl_Informatie.tpl template for calendar management
  *
  * 17-03-2013: Creation
  *}
@@ -8,16 +8,15 @@
 {block name="topdeel"}
 {if count($teksten) > 0}
 <h1>{$teksten[0].titel}</h1>
-<p/>
+<br/>
 {$teksten[0].tekst}
+<br/>
 {/if}
-<p/>
 {if count($data) > 0}
-<p>
 <h1>Aanmelden</h1>
+<br/>
 Vul onderstaand formulier in om je op te geven voor de starterscursus:
-</p>
-<p>
+<br/>
 <form action="{$smarty.server.REQUEST_URI}" method="post" enctype="multipart/form-data" name="surflesAanmeldForm" id="surflesAanmeldForm">
 <table>
 {foreach $data.user as $item}
@@ -38,7 +37,7 @@ Vul onderstaand formulier in om je op te geven voor de starterscursus:
 {/foreach}
 </table>
 <input type="submit" name="action" value="AANMELDEN"/>
-</p>
+</form>
 {/if}
 {/block}
 {block name="linkerDeel"}
@@ -46,18 +45,14 @@ Vul onderstaand formulier in om je op te geven voor de starterscursus:
 <h1>{$teksten[$i].titel}</h1>
 <p>
 {$teksten[$i].tekst}
-<p>
+</p>
 {/for}
 {/block}
 {block name="rechterDeel"}
 <div class="recentNieuwsKader">
-<ul>
-<ul>
 <form id="hiddenSearch" method="GET" action="{$smarty.server.REQUEST_URI}">
-<input type="hidden" name="action" value="showEvent">
-<input type="hidden" name="fd[event][id]" value="">
+<input type="hidden" name="action" value="showEvent"/>
+<input type="hidden" name="fd[event][id]" value=""/>
 </form>
-</ul>
-</ul>
 </div>
 {/block}

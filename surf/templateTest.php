@@ -6,6 +6,7 @@
  */
 require_once "library/all_config.inc.php";
 require_once "general.lib.php";
-
-genSmartyDisplay("wsvl_3panels.tpl");
+// print_r("dit is de ".__CLASS__." class");
+// genLogVar("test",0);
+genSmartyDisplay("wsvl_personal.tpl");
 ?>

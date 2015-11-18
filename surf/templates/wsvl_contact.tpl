@@ -37,6 +37,7 @@ function refresh(field, value) {
 <input type="reset" value="WISSEN">
 </td></tr>
 </table>
+</form>
 </div>
 {/block}
 {block name="linkerDeel"}

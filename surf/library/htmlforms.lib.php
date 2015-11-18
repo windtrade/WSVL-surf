@@ -37,7 +37,7 @@ class htmlforms
 	$result .= "<td>";
 	$cols = 60;
 	$rows = 4 + strlen($pd["value"])/$cols;
-	$result .= "<textarea rows=\"$rows\"".
+	$result .= "<textarea rows=\"$rows\" ".
 	     "name=\"".$name."\">";
 	if (array_key_exists("value", $pd)) {
 	    $result .= $pd["value"];
@@ -70,7 +70,7 @@ class htmlforms
 	if ($pd["checked"] == $pd["value"]) {
 	    $result .= "checked ";
 	}
-	$result .= "value=\"".$pd["checked"]."\" />";
+	$result .= "value=\" ".$pd["checked"]."\" />";
 	$result .= "</td>";
 	return $result;
     }

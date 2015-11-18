@@ -180,10 +180,19 @@ class news extends table
 		}
 		if (0 == mysql_num_rows($result)) {
 		    genSetError("News $news_id does not exist");
-		    return 0;
+		    return false;
 		}
 		return mysql_fetch_assoc($result);
 	}
+    
+    public function get4HTML($news_id)
+    {
+        $result = $this->get($news_id);
+        foreach ($result as $key => $val) {
+            $result["$key"]=nl2br($val);
+        }
+        return $result;
+    }
 		
 	    
 	public function getHot()

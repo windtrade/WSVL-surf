@@ -1,16 +1,19 @@
 <?php
-#
-# This page expects formdata structured like this
-# fd__group__news__<newsfield>
-# ...
-# fd__group___newsdate__<nr>__<newsdatefield>
-# ...
+
+/**
+ * @author Windtrade, Huug Peters
+ * @copyright 2015
+ *
+ * This page expects formdata structured like this\
+ * fd__group__news__<newsfield>
+ * ...   
+ */
 require_once "library/all_config.inc.php";
 require_once "general.lib.php";
 require_once "news.lib.php";
 require_once "image.lib.php";
 
-class kalenderbeheer
+class nieuwsBeheer
 {
     private $news;
     private $image;
@@ -27,19 +30,7 @@ class kalenderbeheer
 	$dto->modify("+ $interval $unit");
 	$result = $dto->format('Y-m-d\TH:i:s');
 	return $result;
-    }
-
-    private function copyCalendarItem($item, $cp)
-    {
-	$result = array();
-	for ($i = 0 ; $i < $cp["count"] ; $i++) {
-	    $item['start'] = $this->dateTimeAdd($item['start'], $cp['interval'], $cp['unit']);
-	    $item['end'] = $this->dateTimeAdd($item['end'], $cp['interval'], $cp['unit']);
-	    array_push($result, $item);
-	}
-	return $result;
-    }
-    
+    }    
 	
     private function isValidNews(&$data)
     {
@@ -216,5 +207,5 @@ class kalenderbeheer
     }
 }
 
-$something = new kalenderbeheer();
+$something = new nieuwsBeheer();
 ?>

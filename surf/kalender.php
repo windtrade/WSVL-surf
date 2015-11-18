@@ -334,7 +334,6 @@ class kalender
 	$data["users"] = genGetPageCache("users");
 	if ($data["users"] === false) $data["users"] = array();
 	#genAddJavascriptFile("formhandling");
-	genDumpVar('$_SESSION', $_SESSION);
 	genSmartyAssign("monthNames", array(
 	    "?",
 	    "januari",	"februari", "maart",

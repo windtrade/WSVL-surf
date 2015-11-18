@@ -548,14 +548,11 @@ function genGetPageCache()
     $nrArgs =func_num_args();
     $allArgs= func_get_args();
     if ($nrArgs < 1) return false;
-    // genDumpVar("allArgs", $allArgs);
     $result = genGetSessionData(
 	$_SERVER["PHP_SELF"],
 	array_shift($allArgs));
-    // genDumpVar(__FILE__.":".__LINE__.": result", $result);
     while ($result && count($allArgs)) {
 	$key = array_shift($allArgs);
-	// genDumpVar(__FILE__.":".__LINE__.": result", $result);
 	if (!array_key_exists($key, $result)) return false;
 	$result = $result[$key];
     }
@@ -646,7 +643,9 @@ function genRegisterEvent($eventList, &$fd)
 // Write to public_html/files/logYYYYMMDD.txt
 function genLogVar($name, $var)
 {
-    $text = $name."=".print_r($var, true);
+    $class = __CLASS__."";
+    if (strlen($class) == 0) $class = "NOCLASS";
+    $text = $class.":".$name."=".print_r($var, true);
     $label = __FILE__;
     $label = preg_replace('/(public_html)(.).*/','$1$2files$2log_',$label);
     $dt = new DateTime();

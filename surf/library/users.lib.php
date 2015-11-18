@@ -283,8 +283,8 @@ class users extends table
 	$this->passwordRemove($old);
 	$this->pwEncrypt($new);
 	# TODO: these fields block the update, unclear why
-	unset($old["mobielnr"]);
-	unset($old["gebdatum"]);
+	//unset($old["mobielnr"]);
+	// unset($old["gebdatum"]);
 	$keys = array_keys($old);
 	#genSetError("nr of keys=".count($keys));
 	while (count($keys) > 0) {

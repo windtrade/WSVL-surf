@@ -10,7 +10,7 @@
 {block name="topdeel"}
 Nog in te vullen
 {/block}
-</div>
+</div><!-- hierzo -->
 </div>
 <div class="linkerDeel">
 {block name="linkerDeel"}

@@ -205,7 +205,7 @@ class image extends table
 		$imOrig = $this->imageFromAnything($imgDir.$origFile, $imgType);
 		if ($imOrig === FALSE) return FALSE;
 		$imWanted = imagecreatetruecolor($newWidth, $wantedHeight);
-		imagecopyresized($imWanted, $imOrig,0,0,0,0,
+		imagecopyresampled($imWanted, $imOrig,0,0,0,0,
 		    $newWidth, $wantedHeight, $width, $height);
 		$result = $this->imageAnything($imWanted,
 		    $imgDir.$wantedFile, $imgType);

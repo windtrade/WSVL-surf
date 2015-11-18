@@ -35,7 +35,8 @@ function buildNewsItem($newsObj, &$newsArr)
 		genSetError("Nieuwsbericht niet gevonden");
 		return;
 	}
-	$newsArr = mysql_fetch_assoc($result);
+	$newsArr = $newsObj->get4HTML($_REQUEST["news_id"]);
+    if ($newsArr === false) $newsArr = array();
 	$newsArr["news_img_url"] = "";
 	if ($newsArr["news_image"] > 0) {
 	    $newsArr["news_imgUrl"] = $img->getUrl(
