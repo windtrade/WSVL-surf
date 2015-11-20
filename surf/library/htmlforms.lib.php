@@ -140,7 +140,6 @@ class htmlforms
 	} else {
 	    $result = $this->otherField($name, $pd);
 	}
-    $result .= "<!-- ".print_r($pd, true). " -->";
 	return $result;
     }
 
