@@ -11,7 +11,17 @@ require_once "database.lib.php";
 require_once "htmlforms.lib.php";
 require_once "htmlelements.lib.php";
 require_once "Smarty.class.php";
+require_once "Parsedown.php";
 require_once "teksten.lib.php";
+/**
+ * general
+ * 
+ * @package WSVL Surf
+ * @author Huug Peters
+ * @copyright 2015
+ * @version $Id$
+ * @access public
+ */
 class general
 {
     private $errors = array();
@@ -19,12 +29,19 @@ class general
     private $javascriptFiles = array();
     private $javascriptStatements = array();
     private $smarty;
+    private $parsedown;
     private $htmlforms;
     private $htmlelements;
     private $db;
     private $formStep = 0;
     private $action;
     public $teksten;
+    private $og = array(
+        "url" => "",
+        "title" => "",
+        "description" => "",
+        "site_name" => "",
+        "image" => "");
 
     const NONE = "0";
     const GENERAL = "1";
@@ -49,6 +66,7 @@ class general
             genSetError("Could not set timezone to $our_timezone");
         }
         $this->smarty = new Smarty();
+        $this->parsedown = new Parsedown();
         $this->htmlforms = new htmlforms();
         $this->htmlelements = new htmlelements();
         $this->teksten = new Teksten();
@@ -116,9 +134,45 @@ class general
         $this->smarty->register_function($inner, $function);
     }
 
+    /*
+    when necessary and possible set the proper open graph attribute
+    */
     public function smartyAssign($name, $var)
     {
         $this->smarty->assign($name, $var);
+        if (array_key_exists($name, $this->og)) {
+            if (!is_array($var)) {
+                $this->og[$name] = $var;
+            } else {
+                genLogVar(__function__ . $name . " is een array", $var);
+            }
+        }
+    }
+
+    private function smartyAddOG()
+    {
+        foreach ($this->og as $key => $val) {
+            if ($val == "") {
+                switch ($key) {
+                    case "title":
+                        $val = "WV Leidschendam Windsurfen en Sup";
+                        break;
+                    case "description":
+                        $val = "WV Leidschendam, de vaart erin sinds 1982";
+                        break;
+                    case "site_name":
+                        $val = "WVLeidschendam Windsurfles, -trainingen, -wedstrijden en weekends";
+                        break;
+                    case "image":
+                        $val = DEFAULT_OG_IMAGE;
+                }
+            }
+            if ($key == "image")
+                $val = image::getUrl($val, "large");
+            $this->og[$key] = $val;
+        }
+        $this->og["url"] = genCurPageURL();
+        $this->smartyAssign("og", $this->og);
     }
 
     public function smartyDisplay($template)
@@ -155,6 +209,8 @@ class general
                 htmlelements, 'HEcssmenu'));
         $this->smarty->registerPlugin('function', 'HEbuildURI', array($this->
                 htmlelements, 'HEbuildURI'));
+        $this->smarty->registerPlugin('function', 'HEsocial', array($this->htmlelements,
+                'HEsocial'));
         $this->smarty->assign('imageRoot', IMAGE_ROOT_URL);
         $this->smarty->assign('formStep', $this->formStep);
         $this->smarty->assign('action', $this->action);
@@ -180,7 +236,18 @@ class general
         $this->smarty->assign('javascriptStatements', $this->javascriptStatements);
         $this->smarty->assign('errors', $this->errors);
         $this->smarty->assign('traces', $this->traces);
+        $this->smartyAddOG();
         $this->smarty->display($template);
+    }
+
+    public function parseDownText($text)
+    {
+        return $this->parsedown->text($text);
+    }
+
+    public function parseDownParse($text)
+    {
+        return $this->parsedown->parse($text);
     }
 
     public function DBConnected()
@@ -319,6 +386,19 @@ function genSmartyDisplay($name)
     if (is_object($general)) {
         $general->smartyDisplay($name);
     }
+}
+
+function genParseDownParse($text)
+{
+    global $general;
+    //return Parsedown::parse($text);
+    return $general->parseDownParse($text);
+}
+
+function genParseDownText($text)
+{
+    global $general;
+    return $general->parseDownText($text);
 }
 
 function genSetDatabase($db)
@@ -676,8 +756,9 @@ function hidePasswords(&$var)
 function genLogVar($name, $var)
 {
     $class = __class__ . "";
-    if (strlen($class) == 0) $class = "NOCLASS";
-    hidePasswords($var);   
+    if (strlen($class) == 0)
+        $class = "NOCLASS";
+    hidePasswords($var);
     $text = $class . ":" . $name . "=" . print_r($var, true);
     $label = __file__;
     $label = preg_replace('/(public_html)(.).*/', '$1$2files$2log_', $label);
@@ -694,6 +775,48 @@ function genLogVar($name, $var)
     fclose($fh);
 }
 
+function genCurPageURL()
+{
+    $nrArgs = func_num_args();
+    $allArgs = func_get_args();
+    $pageURL = 'http';
+    if (isset($_SERVER['HTTPS']) && filter_var($_SERVER['HTTPS'],
+        FILTER_VALIDATE_BOOLEAN)) {
+        $pageURL .= "s";
+    }
+    $pageURL .= "://";
+
+    $pageURL .= $_SERVER["SERVER_NAME"];
+    if ($_SERVER["SERVER_PORT"] != "80") {
+        $pageURL .= ":" . $_SERVER["SERVER_PORT"];
+    }
+    $elts = explode('?', $_SERVER["REQUEST_URI"]);
+    $pageURL .= array_shift($elts); // now only arguments are left
+    $args = explode('&', implode('?', $elts));
+    $params = array();
+    foreach ($args as $arg) {
+        list($key, $val) = explode('=', $arg);
+        $params[$key] = $val;
+    }
+    for ($i = 0; $i < $nrArgs; $i++) {
+        if (is_array($allArgs[$i])) {
+            foreach ($allArgs[0] as $key => $val) {
+                $params[$key] = $val;
+            }
+        } else {
+            list($key, $val) = explode('=', $allArgs[$i]);
+            $params[$key] = $val;
+        }
+    }
+    $elts = array();
+    foreach ($params as $key => $val) {
+        array_push($elts, "$key=$val");
+    }
+    if (count($elts)) {
+        $pageURL .= "?" . urlencode(implode('&', $elts));
+    }
+    return $pageURL;
+}
 /*
 * if you want to change or check the cost of password encryption
 * un-comment this block
@@ -713,6 +836,10 @@ genSetError( "Appropriate Cost Found: " . $cost);
 
 if (is_object($general)) {
     $general->setDatabase(new Database());
+}
+
+if (count(array_keys($_POST))) {
+    genLogVar('$_POST', $POST);
 }
 
 ?>

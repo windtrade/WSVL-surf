@@ -89,11 +89,13 @@ class table
     public function fetch_assoc($query)
     {
         $arr = mysql_fetch_assoc($query);
-        if (!$arr)
+        if (!$arr) {
             return $arr;
+        }
         if (!property_exists(get_class($this), 'structure'))
             return $arr;
         foreach ($arr as $k => $v) {
+            $arr[$k] = iconv("UTF-8", "UTF-8//IGNORE", $v);
             if (!array_key_exists($k, $this->structure))
                 continue;
             if ($this->structure[$k]["type"] == "datetime_local") {
@@ -289,6 +291,7 @@ class table
         return $retval;
     }
 
+    // Expects array(array(column, rel. operator, value)[, ...])
     private function makeQueryClause($arr)
     {
         if (0 == count($arr))
@@ -444,18 +447,26 @@ class table
         } else {
             $distinct = "";
         }
+        if (!is_array($whereArr)) {
+            genLogVar(__function__ . ": arg 1 is not an array of arrays:", $whereArr);
+            return false;
+        }
 
         foreach ($whereArr as $elt) {
             if (!is_array($elt)) {
-                genSetError(__file__ . ":" . __function__ . ": arg 1 is not an array of arrays");
+                genLogVar(__function__ . ": arg 1 is not an array of arrays:", $whereArr);
                 return false;
             }
             if (array_key_exists("col", $elt)) {
-                if (is_int($elt["col"])) {
-                    genSetError(__file__ . ":" . __function__ . " invalid column name: '" . $elt["col"] .
-                        "'");
+                if (is_int($elt["col"]) || !array_key_exists($elt["col"], $this->structure)) {
+                    genLogVAr(__function__ . ": invalid column name: '" . $elt["col"] . "'");
+                    logvar(__function__ . "whereArr=", $whereArr);
+                    logvar(__function__ . "colums are ", $this->structure);
                     return false;
                 }
+            } else {
+                genLogVAr(__function__ . "invalid whereArr:", $whereArr);
+                break;
             }
         }
 
@@ -545,12 +556,13 @@ class table
             #if (is_numeric($arr[$key])) {
             #	$valList .= $arr[$key];
             #    } else {
-            $valList .= '"' . mysql_real_escape_string($arr[$key]) . '"';
+            $valList .= '"' . mysql_real_escape_string(iconv("UTF-8", "UTF-8//IGNORE", $arr[$key])) .
+                '"';
             #    }
         }
         $sqlcmd = sprintf("INSERT INTO %s (%s) values (%s)", $this->table, $colList, $valList);
-        genLogVar(get_class($this) . ":" . __file__ . ":" . __function__ . ":" .
-            __line__ . " insert Command: " . $sqlcmd);
+        genLogVar(__file__ . ":" . __function__ . ":" . __line__ . " insert Command: " .
+            $sqlcmd);
         $result = mysql_query($sqlcmd);
         if ($result) {
             $this->lastId = mysql_insert_id();
@@ -572,14 +584,14 @@ class table
         $whereClause = $this->makeWhereClause($arr);
         if (!$this->isUniqueWhereClause($whereClause)) {
             $msg = __file__ . ":" . __function__ . " attempting multiple delete " . $whereclause;
-            genSetError($msg);
+            //genSetError($msg);
             genLogVar("delete", $msg);
             return false;
         }
         $cmd = sprintf("DELETE FROM %s %s", $this->table, $whereClause);
         $result = mysql_query($cmd);
         if (!$result) {
-            genLogVar(__class__ . ":" . __line__ . ": ", $cmd);
+            genLogVar("line :" . __line__ . ": ", $cmd);
             $this->tbError(null);
             return false;
         }
@@ -595,7 +607,7 @@ class table
         $cmd = sprintf("DELETE FROM %s %s", $this->table, $whereClause);
         $result = mysql_query($cmd);
         if (!$result) {
-            genLogVar(__class__ . ":" . __line__ . ": ", $cmd);
+            genLogVar("Line:" . __line__ . ": ", $cmd);
             $this->tbError(null);
         }
         return $result;
@@ -619,14 +631,15 @@ class table
             } else {
                 $setClause = "SET";
             }
-            $setClause .= sprintf(' %s="%s"', $key, mysql_real_escape_string($new[$key]));
+            $setClause .= sprintf(' %s="%s"', $key, mysql_real_escape_string(iconv("UTF-8",
+                "UTF-8//IGNORE", $new[$key])));
             $busy = true;
         }
         if ($busy) {
             $cmd = sprintf("UPDATE %s %s %s", $this->table, $setClause, $whereClause);
             $result = mysql_query($cmd);
             if (!$result) {
-                genLogVar(__CLASS__ . ":" . __LINE__, $cmd);
+                genLogVar("Line:" . __line__, $cmd);
                 $this->tbError(null);
                 return false;
             }

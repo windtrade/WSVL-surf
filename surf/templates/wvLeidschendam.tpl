@@ -4,10 +4,13 @@
 <meta name="viewport" content="width=device-width, height=device-height"/>  
 <meta http-equiv="Content-type" content="text/html;charset=utf-8"/>
 <meta name="google" content="notranslate">
-<meta name="description" content="Windsurfvereniging Leidschendam e.o. is te vinden aan het surfstrand van recreatiegebied Vlietland, langs A4 tussen Leidschendam, Voorschoten en Leiden in. Waar we surflessen, clubwedstrijden en diverse andere activiteiten organiseren.">
+<meta name="description" content="Windsurfvereniging Leidschendam e.o. op het surfstrand van Vlietland. Daar vind je windsurfles, training, clubwedstrijde, windsurfweekends en nog veel meer." />
 <meta name="keywords" content="surfen,windsurfen,surfing,surfclub,windsurfclub,vereniging,surfvereniging,windsurfing,surfles,vlietland,recreatiegebied,vlietlanden,vliet,leidschendam,leiden,voorschoten,voorburg,denhaag,den-haag, den haag,wassenaar,leiderdorp,zoeterwoude,nootdorp,leren,surfen,surfcursus,windsurfcursus,plankzeilen,wedstrijden,instructie,beginners,beginnersles,KNWV,Watersportverbond,formula,slalom,plankzeilen,courserace,training,thema,avonden,gijpen,overstag,planeren,waterstart,waterstarten,plane,zuid-holland,zuid holland, nederland,europa">
 <link href="{$stylesheet}" rel="stylesheet" type="text/css"/>
 <title>{block name="title"}Informatie | Windsurfvereniging Leidschendam en omstreken{/block}</title>
+{foreach $og as $tag => $val}
+<meta property="og:{$tag}" content="{$val}" />
+{/foreach}
 {foreach $javascriptFiles as $script}
 <script type="text/javascript" src="{$script}"></script>
 {/foreach}
@@ -26,7 +29,25 @@
   js = d.createElement(s); js.id = id;
   js.src = "//connect.facebook.net/nl_NL/all.js#xfbml=1";
   fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+}(document, 'script', 'facebook-jssdk'));
+</script>
+<script>window.twttr = (function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0],
+    t = window.twttr || {};
+  if (d.getElementById(id)) return t;
+  js = d.createElement(s);
+  js.id = id;
+  js.src = "https://platform.twitter.com/widgets.js";
+  fjs.parentNode.insertBefore(js, fjs);
+ 
+  t._e = [];
+  t.ready = function(f) {
+    t._e.push(f);
+  };
+ 
+  return t;
+}(document, "script", "twitter-wjs"));
+</script>
 <div class="contentArea">
 <!-- NAVIGATIE MENU BALK MET LOGO -->
 <div class="navHeader" id="navHeader">

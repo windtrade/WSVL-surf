@@ -76,9 +76,10 @@ class image extends table
     protected $supported_types = array(
 	"image/jpeg", "image/png", "image/gif");
     
-    private $largeWidth = 600;
-    private $smallWidth = 300;
-    private $thumbWidth = 75;
+    
+    const largeWidth = 600;
+    const smallWidth = 300;
+    const thumbWidth = 75;
 
     public function __construct()
     {
@@ -189,25 +190,25 @@ class image extends table
 		$wantedFile = preg_replace('/^(.*)(\.[^.*])/',
 		    '$1_'.$size.'$2', $origFile);
 		list($width, $height, $imgType) = getImageSize($imgDir.$origFile);
-		$newWidth = $this->largeWidth;
+		$newWidth = largeWidth;
 		switch (strtolower($size)) {
 		case 'small':
-		    $newWidth = $this->smallWidth;
+		    $newWidth = smallWidth;
 		    break;
 		case 'thumb':
-		    $newWidth = $this->thumbWidth;
+		    $newWidth = thumbWidth;
 		    break;
 		}
 		if ($width <= $newWidth) {
 		    return $imgUrlDir.$origFile;
 		}
 		$wantedHeight = round($height*$newWidth/$width);
-		$imOrig = $this->imageFromAnything($imgDir.$origFile, $imgType);
+		$imOrig = image::imageFromAnything($imgDir.$origFile, $imgType);
 		if ($imOrig === FALSE) return FALSE;
 		$imWanted = imagecreatetruecolor($newWidth, $wantedHeight);
 		imagecopyresampled($imWanted, $imOrig,0,0,0,0,
 		    $newWidth, $wantedHeight, $width, $height);
-		$result = $this->imageAnything($imWanted,
+		$result = image::imageAnything($imWanted,
 		    $imgDir.$wantedFile, $imgType);
 		if ($result === FALSE) {
 		    return $result;
@@ -289,18 +290,18 @@ class image extends table
 	$imOrig = $this->imageFromAnything($tmp, $imgType);
 	$ext = image_type_to_extension($imgType);
 	if ($imOrig === FALSE) return FALSE;
-	$largeHeight = round($height*$this->largeWidth/$width);
-	$smallHeight = round($height*$this->smallWidth/$width);
-	$thumbHeight = round($height*$this->thumbWidth/$width);
-	$imLarge = imagecreatetruecolor($this->largeWidth, $largeHeight);
-	$imSmall = imagecreatetruecolor($this->smallWidth, $smallHeight);
-	$imThumb = imagecreatetruecolor($this->thumbWidth, $thumbHeight);
+	$largeHeight = round($height*largeWidth/$width);
+	$smallHeight = round($height*smallWidth/$width);
+	$thumbHeight = round($height*thumbWidth/$width);
+	$imLarge = imagecreatetruecolor(largeWidth, $largeHeight);
+	$imSmall = imagecreatetruecolor(smallWidth, $smallHeight);
+	$imThumb = imagecreatetruecolor(thumbWidth, $thumbHeight);
 	imagecopyresized($imLarge, $imOrig,0,0,0,0,
-	    $this->largeWidth, $largeHeight, $width, $height);
+	    largeWidth, $largeHeight, $width, $height);
 	imagecopyresized($imSmall, $imOrig,0,0,0,0,
-	    $this->smallWidth, $smallHeight, $width, $height);
+	    smallWidth, $smallHeight, $width, $height);
 	imagecopyresized($imThumb, $imOrig,0,0,0,0,
-	    $this->thumbWidth, $thumbHeight, $width, $height);
+	    thumbWidth, $thumbHeight, $width, $height);
 	$result = $this->imageAnything($imOrig,
 	    $dirname.$dest.$ext, $imgType);
 	if ($result === FALSE) return FALSE;

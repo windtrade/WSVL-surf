@@ -89,10 +89,10 @@ class informatie
         }
         $hasRegistration = false;
         foreach ($fd as $group => $arr) {
-            genLogVar(__class__ . ":" . __function__ . " group:", $group);
+            genLogVar(__FUNCTION__ . " group:", $group);
             if ($group == "user") {
                 if (!$this->users->isValid($arr, $this->userColumns)) {
-                    genLogVar(__class__ . ":" . __function__ . " isValidUser", false);
+                    genLogVar(__FUNCTION__ . " isValidUser", false);
                     return false;
 
                 } elseif ($group == "eventRegister") {
@@ -103,7 +103,7 @@ class informatie
             }
         }
         if (!$hasRegistration) {
-            genLogVar(__class__ . ":" . __function__ . " hasRegistration:", $hasRegistration);
+            genLogVar(__FUNCTION__ . " hasRegistration:", $hasRegistration);
             genSetError("Geef één of meer data op");
             return false;
         }
@@ -205,12 +205,12 @@ class informatie
                 if ($idx === false) {
                     if ($evReg["enrolled"]) {
                         $this->eventRegister->update($evReg, array("enrolled" => 0));
-                        genLogVar(__class__ . ":" . __function__ . "update enrolled = 0 evReg:", $evReg);
+                        genLogVar(__FUNCTION__ . "update enrolled = 0 evReg:", $evReg);
                     }
                 } else {
                     if (!$evReg["enrolled"]) {
                         $this->eventRegister->update($evReg, array("enrolled" => 1));
-                        genLogVar(__class__ . ":" . __function__ . "update enrolled = 1 evReg:", $evReg);
+                        genLogVar(__FUNCTION__ . "update enrolled = 1 evReg:", $evReg);
                     }
                     array_splice($newStarts[$evId], $idx, 1);
                 }
@@ -225,7 +225,7 @@ class informatie
                         "userId" => $fd["user"]["id"],
                         "enrolled" => 1);
                     $this->eventRegister->insert($evReg);
-                    genLogVar(__class__ . ":" . __function__ . "insert evReg:", $evReg);
+                    genLogVar(__FUNCTION__ . "insert evReg:", $evReg);
                 }
             }
         }

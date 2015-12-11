@@ -66,8 +66,11 @@ class teksten extends table
 		$tekst["tekst"] = preg_replace("/<br\s*\/\s*>/", "",
 		    $tekst["tekst"]);
 		if ($html) {
-		    $tekst["tekst"] = preg_replace("/\n/", "<br/>\n",
+		    /*
+            $tekst["tekst"] = preg_replace("/\n/", "<br/>\n",
 			$tekst["tekst"]);
+            */
+            $tekst["tekst"] = genParseDownParse($tekst["tekst"]);
 		}
 		return $tekst;
 	    }

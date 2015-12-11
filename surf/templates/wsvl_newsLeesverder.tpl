@@ -9,7 +9,7 @@
 <div class="tweeDelen">
 	<div class="linkerDeel">
 		<div class="titelBalk">
-			<img src="images/overgangs-streep.gif" >
+			<img src="images/overgangs-streep.gif" />
 		</div>
 		<div class="nieuwsTitel" />
 			<div class="objTitel">{$news_title}</div>
@@ -23,12 +23,13 @@
 			</div>
 			{/if}
 		<div>
-			<b>{$news_short}</b><p />
+			<p><b>{$news_short}</b><p/>
 			{$news_message}
+            {HEsocial}
 		</div>
 	</div>
 	<div class="rechterDeel">
-		<div class="titelBalk"><img src="images/kop_ander-nieuws.gif" ></div>
+		<div class="titelBalk"><img src="images/kop_ander-nieuws.gif" /></div>
 		<div class="recentNieuwsKader">
 		<ul>
 		{for $i=0 to count($newsIds)-1}

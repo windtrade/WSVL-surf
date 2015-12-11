@@ -7,9 +7,18 @@
  */
  require_once "library/all_config.inc.php";
  require_once "general.lib.php";
+ require_once "teksten.lib.php";
  
  genLogVar('$_REQUEST', $_REQUEST);
-
-genSmartyDisplay('wvLeidschendam.tpl')
+ 
+ $teksten = new teksten();
+ 
+ $tekst = $teksten->getTekst(33);
+ 
+ $data= $tekst["tekst"];
+ genDumpvar('$_server', $_SERVER);
+ 
+genSmartyAssign("data", $data);
+genSmartyDisplay('wsvl_testFunction.tpl')
 
 ?>

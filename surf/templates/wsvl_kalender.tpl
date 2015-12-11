@@ -1,10 +1,10 @@
 {*
- * wsvl_kalenderBeheer.tpl template for calendar management
+ * wsvl_kalender.tpl template for calendar display
  *
  * 17-03-2013: Creation
  *}
 {extends file="wsvl_personal.tpl"}
-{block name="title"}WV Leidschendam Beheer Lidmaatschap{/block}
+{block name="title"}WV Leidschendam Kalender{/block}
 {block name="topdeel"}
 {if (isset($currentEventItem))}
     {$item = $data.event[$currentEventItem.id]}
@@ -65,6 +65,7 @@
 </tr>
 </table>
 </form>
+<p>{HEsocial currentEventId="{$currentEventItem.id}" currentStart="{$currentEventItem.start}"}</p>
 </div>
 </div>
 {/block}
