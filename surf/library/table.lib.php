@@ -129,7 +129,6 @@ class table
                 $matches[4], $matches[5]);
             return true;
         }
-        // genSetError(__file__ . ":" . __function__ . " matches=" . print_r($matches, true));
         return false;
     }
     /*

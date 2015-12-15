@@ -83,7 +83,7 @@ function buildNewsList($newsObj, $newsArr)
             "val" => $now));
     $result = $newsObj->readQuery($whereArr, array("news_hotFrom" => "DESC"));
     if ($result) {
-        while ($news = mysql_fetch_assoc($result)) {
+        while ($news = $newsObj->fetch_assoc($result)) {
             if ($news["news_hotFrom"] < $stopAt)
                 break;
             array_push($newsIds, $news["news_id"]);
