@@ -20,7 +20,7 @@ Het lidmaatschap wordt in principe jaarlijks stilzwijgend verlengd, tenzij het l
 {if $elt.value != "" || !$elt.protected}
 <tr>
 {HFlabeledField prefix="fd[{$key}]" data=$elt}
-<tr>
+</tr>
 {/if}
 {/foreach}
 {/foreach}
@@ -28,8 +28,8 @@ Het lidmaatschap wordt in principe jaarlijks stilzwijgend verlengd, tenzij het l
 <tr>{HFrecaptcha}</tr>
 {/if}
 <tr>
-<td><input type="submit" name="command" value="{$command}"/></td>
-<td><input type="reset" value="WISSEN"/></td>
+<td>{HFsubmit value="AANMELDEN"}</td>
+<td>{HFreset value="WISSEN"}</td>
 </tr>
 </table>
 </form>

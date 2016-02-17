@@ -20,6 +20,16 @@
 {$statement}
 {/foreach}
 </script>
+<script type="text/javascript">
+   $(document).ready(function(){
+      showLogin({$mustLogin} && !{$loggedIn});
+      addOnClicks();
+      $(document).ajaxError(function(event,xhr,options,exc)
+      {
+        window.alert("exception"+event);
+      })
+   });
+</script>
 {/if}
 <body>
 <div id="fb-root"></div>
@@ -31,23 +41,23 @@
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));
 </script>
+<!-- 21-1-2016 removed illegal characters from twitter script -->
 <script>window.twttr = (function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0],
-    t = window.twttr || {};
-  if (d.getElementById(id)) return t;
-  js = d.createElement(s);
-  js.id = id;
-  js.src = "https://platform.twitter.com/widgets.js";
-  fjs.parentNode.insertBefore(js, fjs);
- 
-  t._e = [];
-  t.ready = function(f) {
-    t._e.push(f);
-  };
- 
-  return t;
+var js, fjs = d.getElementsByTagName(s)[0],
+t = window.twttr || {};
+if (d.getElementById(id)) return t;
+js = d.createElement(s);
+js.id = id;
+js.src = "https://platform.twitter.com/widgets.js";
+fjs.parentNode.insertBefore(js, fjs); 
+  t._e = [];
+  t.ready = function(f) {
+    t._e.push(f);
+  };
+ 
+  return t;
 }(document, "script", "twitter-wjs"));
-</script>
+</script>   
 <div class="contentArea">
 <!-- NAVIGATIE MENU BALK MET LOGO -->
 <div class="navHeader" id="navHeader">
@@ -62,20 +72,23 @@
 <div class="error">{$error}</div>
 {/foreach}
 </div>
-{if $mustLogin and not $loggedIn}
+<div class="infos">
+{foreach $infos as $info}
+<div class="info">{$info}</div>
+{/foreach}
+</div>
 <div class="login">
-<form method="POST" action="{$smarty.server.REQUEST_URI}">
+<form method="POST" {*action="{$smarty.server.REQUEST_URI}" *}name="loginform">
 emailadres of nick:
 <input name="login" type="text" size="25" />
 wachtwoord:
 <input name="password" type="password" size="15" />
-<input name="action" type="hidden" value="login"/>
-<input type="submit" value="in loggen"/>
+<input name="action" type="hidden" value="JSONlogin"/>
+<input type="button" value="inloggen" onclick="logonJSON()"/>
+<input type="button" value="annuleren" onclick="showLogin(false)"/>
 </form>
 </div>
-{else}
 {block name="body"}Deze pagina is nog niet ingevuld{/block}
-{/if}
 </div>
 <div class="footerTxt">
 	Copyright &copy; 1978-{$smarty.now|date_format:'%Y'} Watersportvereniging Leidschendam en omstreken, aangesloten bij<br />
@@ -91,5 +104,9 @@ urchinTracker();
 </div>
 </body>
 {if count($traces)}
+{foreach $traces as $trace}
+<!-- {$trace} -->
+{/foreach}
 {/if}
+<!-- {$template} -->
 </html>

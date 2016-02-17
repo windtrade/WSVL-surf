@@ -11,6 +11,8 @@
  
  genLogVar('$_REQUEST', $_REQUEST);
  
+ genDumpvar("menuItem",genGetMenuItem("informatie.php","tarieven"));
+ 
  $teksten = new teksten();
  
  $tekst = $teksten->getTekst(33);

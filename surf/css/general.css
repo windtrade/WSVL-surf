@@ -340,12 +340,19 @@ padding: 10px;
     background-repeat: no-repeat;
     background-position: left top;
 }
-.heterContent img {
-	margin-right: 8px;
+.img_large {
+    margin-left: auto;
+    margin-right: auto;
+	margin-bottom: 1em;
+	margin-top: 1em;
+	border: 1px solid #FFFFFF;
+}
+.img_small {
+	margin-right: 1em;
 	float: left;
 	margin: 3px;
 	margin-top: 5px;
-	border: 1px solid #000000;
+	border: 1px solid #FFFFFF;
 }
 .heterContent h3 {
 	font-family: Arial, Geneva, Helvetica, sans-serif, Verdana;

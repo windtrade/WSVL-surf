@@ -52,10 +52,10 @@ Je kunt de lijst later altijd weer wijzigen.
 </form>
 <tr>
 <td>
-<input type="submit" value="Opslaan">
+{HFsubmit value="Opslaan"}
 </td>
 <td>
-<input type="reset" value="Herstellen">
+{HFreset value="Herstellen"}
 </td>
 </tr>
 </table>

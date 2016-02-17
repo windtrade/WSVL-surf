@@ -25,6 +25,7 @@ require_once "teksten.lib.php";
 class general
 {
     private $errors = array();
+    private $infos = array();
     private $traces = array();
     private $javascriptFiles = array();
     private $javascriptStatements = array();
@@ -124,6 +125,49 @@ class general
         return array_pop($this->errors);
     }
 
+    public function getErrors()
+    {
+        $result = array();
+        $nrArgs = func_num_args();
+        $allArgs = func_get_args();
+        $format = "";
+        if ($nrArgs != 0) {
+            $format = array_shift($allArgs);
+        }
+        if ($format == "") {
+            $result = $this->errors;
+        } else {
+            $result = genArrayToAssoc($this->errors, $format);
+        }
+        $this->errors = array();
+        return $result;
+    }
+
+    public function setInfo($msg)
+    {
+        array_push($this->infos, nl2br(htmlEntities($msg)));
+    }
+
+    public function getInfos()
+    {
+        $result = array();
+
+        $result = array();
+        $nrArgs = func_num_args();
+        $allArgs = func_get_args();
+        $format = "";
+        if ($nrArgs != 0) {
+            $format = array_shift($allArgs);
+        }
+        if ($format == "") {
+            $result = $this->infos;
+        } else {
+            $result = genArrayToAssoc($this->infos, $format);
+        }
+        $this->infos = array();
+        return $result;
+    }
+
     public function setFormStep($formStep)
     {
         $this->formStep = $formStep;
@@ -135,7 +179,7 @@ class general
     }
 
     /*
-    when necessary and possible set the proper open graph attribute
+    * when necessary and possible set the proper open graph attribute
     */
     public function smartyAssign($name, $var)
     {
@@ -144,7 +188,7 @@ class general
             if (!is_array($var)) {
                 $this->og[$name] = $var;
             } else {
-                genLogVar(__function__ . $name . " is een array", $var);
+                genLogVar(__function__ . "value og[" . $name . "] is een array", $var);
             }
         }
     }
@@ -191,6 +235,7 @@ class general
         $this->trace("PHP versie: " . PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION . "." .
             PHP_RELEASE_VERSION);
         $this->addJavascriptFile("general");
+        $this->addJavascriptFile(JQUERY_SRC);
         $this->addJavascriptFile(RECAPTCHA_API);
         #$this->addJavascriptFile("jquery-ui-1.10.0.custom.min");
         $this->smarty->registerPlugin('function', 'HFform', array($this->htmlforms,
@@ -199,8 +244,14 @@ class general
                 htmlforms, 'HFlabeledField'));
         $this->smarty->registerPlugin('function', 'HFrecaptcha', array($this->htmlforms,
                 'HFrecaptcha'));
+        $this->smarty->registerPlugin('function', 'HFsubmit', array($this->htmlforms,
+                'HFsubmit'));
+        $this->smarty->registerPlugin('function', 'HFreset', array($this->htmlforms,
+                'HFreset'));
         $this->smarty->registerPlugin('function', 'HEelement', array($this->
                 htmlelements, 'HEelement'));
+        $this->smarty->registerPlugin('function', 'HEanchor', array($this->
+                htmlelements, 'HEanchor'));
         $this->smarty->registerPlugin('function', 'HEimage', array($this->htmlelements,
                 'HEimage'));
         $this->smarty->registerPlugin('function', 'HEtext', array($this->htmlelements,
@@ -211,6 +262,7 @@ class general
                 htmlelements, 'HEbuildURI'));
         $this->smarty->registerPlugin('function', 'HEsocial', array($this->htmlelements,
                 'HEsocial'));
+        $this->smarty->assign("template", $template);
         $this->smarty->assign('imageRoot', IMAGE_ROOT_URL);
         $this->smarty->assign('formStep', $this->formStep);
         $this->smarty->assign('action', $this->action);
@@ -235,6 +287,7 @@ class general
         $this->smarty->assign('javascriptFiles', $this->javascriptFiles);
         $this->smarty->assign('javascriptStatements', $this->javascriptStatements);
         $this->smarty->assign('errors', $this->errors);
+        $this->smarty->assign('infos', $this->infos);
         $this->smarty->assign('traces', $this->traces);
         $this->smartyAddOG();
         $this->smarty->display($template);
@@ -242,7 +295,7 @@ class general
 
     public function parseDownText($text)
     {
-        return $this->parsedown->text($text);
+        $result = $this->parsedown->text($text);
     }
 
     public function parseDownParse($text)
@@ -348,6 +401,13 @@ function genSetError($msg)
         $general->setError($msg);
     }
 }
+function genSetInfo($msg)
+{
+    global $general;
+    if (is_object($general)) {
+        $general->setInfo($msg);
+    }
+}
 function genDumpVar($label, $var)
 {
     genSetError($label . "=" . print_r($var, true));
@@ -360,6 +420,34 @@ function genGetError()
         return $general->getError();
     }
     return "";
+}
+function genGetErrors()
+{
+    global $general;
+    $nrArgs = func_num_args();
+    $allArgs = func_get_args();
+    $format = "";
+    if ($nrArgs != 0) {
+        $format = array_shift($allArgs);
+    }
+    if (is_object($general)) {
+        return $general->getErrors($format);
+    }
+    return array();
+}
+function genGetInfos()
+{
+    global $general;
+    $nrArgs = func_num_args();
+    $allArgs = func_get_args();
+    $format = "";
+    if ($nrArgs != 0) {
+        $format = array_shift($allArgs);
+    }
+    if (is_object($general)) {
+        return $general->getInfos($format);
+    }
+    return array();
 }
 
 function genSmartyRegister_function($inner, $function)
@@ -423,10 +511,18 @@ function genDBClose()
     }
 }
 
-function genTrace($msg)
+function genTrace()
 {
     global $general;
     if (is_object($general)) {
+        $nrArgs = func_num_args();
+        $allArgs = func_get_args();
+        $msg = "";
+        while (count($args) > 1) {
+            $msg .= array_shift($args)."=";
+            $msg.= print_r(array_shift($args), true)."\n";
+        }
+        $msg = print_r(array_shift($args), true);
         $general->trace($msg);
     }
 }
@@ -759,7 +855,8 @@ function genLogVar($name, $var)
     if (strlen($class) == 0)
         $class = "NOCLASS";
     hidePasswords($var);
-    $text = $class . ":" . $name . "=" . print_r($var, true);
+    $text = "(" . $_SERVER["REMOTE_ADDR"] . ") " . $class . ": " . $name . "=" .
+        print_r($var, true);
     $label = __file__;
     $label = preg_replace('/(public_html)(.).*/', '$1$2files$2log_', $label);
     $dt = new DateTime();
@@ -769,8 +866,8 @@ function genLogVar($name, $var)
         genSetError("Unable to open $label ");
         return;
     }
+    fwrite($fh, $dt->format("d-m-Y H:i:s ==> "));
     fwrite($fh, $_SERVER["REQUEST_URI"] . "\n");
-    fwrite($fh, $dt->format("d-m-Y H:i:s\n"));
     fwrite($fh, $text . "\n");
     fclose($fh);
 }
@@ -795,8 +892,10 @@ function genCurPageURL()
     $args = explode('&', implode('?', $elts));
     $params = array();
     foreach ($args as $arg) {
-        list($key, $val) = explode('=', $arg);
-        $params[$key] = $val;
+        $elts = explode('=', $arg);
+        if (count($elts)) {
+            $params[$elts[0]] = (count($elts) > 1 ? $elts[1] : "");
+        }
     }
     for ($i = 0; $i < $nrArgs; $i++) {
         if (is_array($allArgs[$i])) {
@@ -817,21 +916,204 @@ function genCurPageURL()
     }
     return $pageURL;
 }
+/**
+ * Add messages to $data
+ * Convert $data to JSON string and write it as response
+ * with appropriate headers
+ * then exit;
+ */
+function genJSONResponse($data)
+{
+    $now = new DateTime();
+    $now->modify("-1s");
+    $now = $now->format("D, j M Y H:i:s e");
+    if (headers_sent())
+        return;
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Expires: ' . $now);
+    header('Content-type: application/json');
+    $data["errors"] = genGetErrors("msg");
+    $data["infos"] = genGetInfos("msg");
+    $output = json_encode($data);
+    print ($output);
+    genLogVar(__function__ . '$output', $output);
+    exit(0);
+}
+
+/**
+ * turn an array into array of assoc arrays:
+ * {val, val, ...} ==> {{label => val}, {label => val}, {label => val}, ...}}
+ */
+function genArrayToAssoc($arr, $label)
+{
+    $result = array();
+    while ($val = array_shift($arr)) {
+        array_push($result, array($label => $val));
+    }
+    return $result;
+}
+
+/**
+ * return menu item from menu branche or any sub menu
+ * or false when no match was found
+ */
+function genGetMenuItemFromArray($arr, $url, $tab, $bestYet)
+{
+    if (0 == count($arr))
+        return false;
+    foreach ($arr as $e) {
+        foreach (array("url", "tab") as $key) {
+            if (!array_key_exists($key, $e)) {
+                $e[$key] = "";
+            }
+        }
+        if ($url == $e["url"]) {
+            if ($e["mustLogin"]) {
+                if (!$bestYet)
+                    $bestYet = $e;
+            }
+            if ($tab == $e["tab"]) {
+                return $e;
+            }
+        }
+        if (array_key_exists("subMenu", $e)) {
+            $result = genGetMenuItemFromArray($e["subMenu"], $url, $tab, $bestYet);
+            if ($result) {
+                if ($result["tab"] == $tab) {
+                    return $result;
+                }
+                if (!$bestYet || $bestYet["tab"] != "") {
+                    $bestYet = $result;
+                }
+            }
+        }
+    }
+    return $bestYet;
+}
+
+/**
+ * Return first menu item from $mainMenu with matching url and tab
+ * or false when not found
+ */
+function genGetMenuItem($url, $tab)
+{
+    global $mainMenu;
+    $url = preg_replace('/^\/*/', "", $url);
+    // genLogVar(__function__ . ' $url?$tab', $url . "?" . $tab);
+    $result = genGetMenuItemFromArray($mainMenu, $url, $tab, false);
+    // genLogVar(__function__ . " result", $result);
+    return $result;
+}
+/** 
+ * If the page is not listed, you must be logged in for it
+ */
+function genGetRequiredAuthority($url)
+{
+    $mustLogin = true;
+    $role = "";
+    if ($url) {
+        /** $url = page[?var=val[&var=val]...] */
+        $a["tab"] = "";
+        $elts = explode('?', $url);
+        if (count($elts) > 1) {
+            $args = explode("&", $elts[1]);
+            foreach ($args as $arg) {
+                $val = "";
+                list($key, $val) = explode('=', $arg);
+                $a[$key] = $val;
+            }
+        }
+        $menuItem = genGetMenuItem($elts[0], $a["tab"]);
+        //genLogVar(__function__ . ":menuitem", $menuItem);
+        if ($menuItem) {
+            if (array_key_exists("role", $menuItem)) {
+                $role = $menuItem["role"];
+            }
+            if (array_key_exists("mustLogin", $menuItem)) {
+                $mustLogin = (0 != $menuItem["mustLogin"]);
+            }
+        }
+    }
+    return array("mustLogin" => $mustLogin, "role" => $role);
+}
+
+function genIsAuthorized($userSession)
+{
+    $reqAuth = genGetRequiredAuthority($_SERVER["REQUEST_URI"]);
+    $result = true;
+    if ($reqAuth["mustLogin"]) {
+        $result = false;
+        if ($userSession->isLoggedIn()) {
+            $result = $userSession->hasRole($reqAuth["role"]);
+        }
+    }
+    return $result;
+}
+
+function genGetMustLogin()
+{
+    $nrArgs = func_num_args();
+    $allArgs = func_get_args();
+    if ($nrArgs == 0) {
+        $uri = $_SERVER["REQUEST_URI"];
+    } else {
+        $uri = $allArgs[0];
+    }
+    $reqAuth = genGetRequiredAuthority($uri);
+    //genLogVar(__file__ . ":" . __function__ . ' $uri=', $uri]);
+    //genLogVar(__file__ . ":" . __function__ . ' $reqAuth=', $reqAuth);
+    return $reqAuth["mustLogin"];
+}
+/** return the assoc array that makes up the menu */
+function genGetMenu()
+{
+    global $mainMenu;
+    return $mainMenu;
+}
+
+/** get $_POST['fd'] as far as it matches expected */
+function genGetFormdata($expected)
+{
+    if (!array_key_exists('fd', $_POST)) {
+        genSetError("Geen gegevens ontvangen");
+        genLogVar(__file__ . ":" . __function__ . "Geen POST data REQUEST", $_REQUEST);
+        return false;
+    }
+    $result = array();
+    return $result;
+}
+
+/**
+ * return arguments wrapped in HTML comment
+ */
+function genHTMLcomment()
+{
+    $result = "<!-- ";
+    $numArs = func_num_args();
+    $args = func_get_args();
+    while ($args) {
+        $arg = array_shift($args);
+        $result .=  print_r($arg, true);
+    }
+    $result .= " -->";
+    return $result;
+}
+
 /*
 * if you want to change or check the cost of password encryption
 * un-comment this block
 
-$timeTarget = 0.05; // 50 milliseconds 
+* $timeTarget = 0.05; // 50 milliseconds 
 
-$cost = 8;
-do {
-$cost++;
-$start = microtime(true);
-password_hash("test", PASSWORD_BCRYPT, array("cost" => $cost));
-$end = microtime(true);
-} while (($end - $start) < $timeTarget);
+* $cost = 8;
+* do {
+* $cost+  +;
+* $start = microtime(true);
+* password_hash("test", PASSWORD_BCRYPT, array("cost" => $cost));
+* $end = microtime(true);
+* } while (($end - $start) < $timeTarget);
 
-genSetError( "Appropriate Cost Found: " . $cost);
+* genSetError( "Appropriate Cost Found: " . $cost);
 */
 
 if (is_object($general)) {
@@ -839,7 +1121,6 @@ if (is_object($general)) {
 }
 
 if (count(array_keys($_POST))) {
-    genLogVar('$_POST', $POST);
+    genLogVar(__file__ . ":" . '$_POST', $_POST);
 }
-
 ?>

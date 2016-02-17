@@ -75,6 +75,15 @@ Kies wie je wilt aanmelden:
 {$rows = floor(($elts+$cols-1)/$cols)}
 {$row=0}
 <table>
+<tr><td>
+{HEanchor onclick="bulkCheck(event, 'fd[eventRegister][{$item.event.id}]', true)" inner="Alles kiezen"}
+</td>
+{if $cols==1}</tr><tr>{/if}
+<td>
+{HEanchor onclick="bulkCheck(event, 'fd[eventRegister][{$item.event.id}]', false)" inner="Niets kiezen"}
+</td>
+{for $i = 3 to $cols}<td></td>{/for}
+</tr>
 {while $row < $rows}
 <tr>
 {$col=0}
@@ -113,7 +122,7 @@ Kies wie je wilt aanmelden:
 <span class="nieuwsTitel">Trainingsbijdrage</span><br />
 <span class="nieuwsAuteur"></span>
 <p>Na dat je bent aangemeld voor de training krijg je via email een factuur voor de trainingsbijdrage. Meer over de
-trainingsbijdrage</a> vindt je op de <a href="http://{$smarty.server.SERVER_NAME}/informatie_leesverder.php?tekst=23&rubriek_id=3&tab=informatie">informatie pagina's</a>.</p>
+trainingsbijdrage</a> vindt je op de <a href="http://{$smarty.server.SERVER_NAME}/informatie.php?tab=tarieven">informatie pagina's</a>.</p>
 </div>
 
 <div class="recentNieuwsBericht">

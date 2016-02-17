@@ -37,16 +37,16 @@ class informatie
         }
         if (strtolower($tab) == "surfpool")
             $nrs = array(22, 28);
-        else
-            if (strtolower($tab) == "surfles") {
-                $nrs = array(24, 28);
-                $data = $this->getData(general::INSTRUCTION);
-            } else
-                if (strtolower($tab) == "wedstrijden")
-                    $nrs = array(21, 28);
-                else
-                    if (strtolower($tab) == "gww")
-                        $nrs = array(21, 28);
+        elseif (strtolower($tab) == "surfles") {
+            $nrs = array(24, 28);
+            $data = $this->getData(general::INSTRUCTION);
+        } elseif (strtolower($tab) == "wedstrijden") {
+            $nrs = array(7, 8, 9);
+        } elseif (strtolower($tab) == "tarieven") {
+            $nrs = array(31 );
+        } elseif (strtolower($tab) == "gww") {
+            $nrs = array(21, 28);
+        }
         $teksten = array();
         foreach ($nrs as $nr) {
             if ($tekst = $this->teksten->getTekst($nr)) {
@@ -89,10 +89,10 @@ class informatie
         }
         $hasRegistration = false;
         foreach ($fd as $group => $arr) {
-            genLogVar(__FUNCTION__ . " group:", $group);
+            genLogVar(__function__ . " group:", $group);
             if ($group == "user") {
                 if (!$this->users->isValid($arr, $this->userColumns)) {
-                    genLogVar(__FUNCTION__ . " isValidUser", false);
+                    genLogVar(__function__ . " isValidUser", false);
                     return false;
 
                 } elseif ($group == "eventRegister") {
@@ -103,7 +103,7 @@ class informatie
             }
         }
         if (!$hasRegistration) {
-            genLogVar(__FUNCTION__ . " hasRegistration:", $hasRegistration);
+            genLogVar(__function__ . " hasRegistration:", $hasRegistration);
             genSetError("Geef één of meer data op");
             return false;
         }
@@ -205,12 +205,12 @@ class informatie
                 if ($idx === false) {
                     if ($evReg["enrolled"]) {
                         $this->eventRegister->update($evReg, array("enrolled" => 0));
-                        genLogVar(__FUNCTION__ . "update enrolled = 0 evReg:", $evReg);
+                        genLogVar(__function__ . "update enrolled = 0 evReg:", $evReg);
                     }
                 } else {
                     if (!$evReg["enrolled"]) {
                         $this->eventRegister->update($evReg, array("enrolled" => 1));
-                        genLogVar(__FUNCTION__ . "update enrolled = 1 evReg:", $evReg);
+                        genLogVar(__function__ . "update enrolled = 1 evReg:", $evReg);
                     }
                     array_splice($newStarts[$evId], $idx, 1);
                 }
@@ -225,7 +225,7 @@ class informatie
                         "userId" => $fd["user"]["id"],
                         "enrolled" => 1);
                     $this->eventRegister->insert($evReg);
-                    genLogVar(__FUNCTION__ . "insert evReg:", $evReg);
+                    genLogVar(__function__ . "insert evReg:", $evReg);
                 }
             }
         }

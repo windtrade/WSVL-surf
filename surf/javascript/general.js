@@ -122,7 +122,208 @@ function addInputRow( nextRow, label, type, disabled, value)
     tr.appendChild(td);
     nextRow.parentNode.insertBefore(tr);
 }
-    
 
+/**
+ * obj is expected to have members that match
+ * existing div elements in the page
+ * obj = { block: [ {property:val, ...} , ...  ], ...}
+ * msg is the most common property
+ */
+function displayMessages(obj)
+{
+    var blocks = ["errors", "infos"];
+    for (var i = 0; i < blocks.length; i++) {
+        var block = blocks[i];
+        if ($("."+ block)) {
+            $("."+ block).html("")
+            var list = obj[block];
+            $.each(list, function(key, val) {
+                for (property in val) {
+                var msg = "<div class='"+property+"'>" +val[property] + "</div>";
+                $( "."+ block ).append( msg );
+                }
+            });
+        }
+    }
+}
 
+function testDisplayMessages()
+{
+        var obj = {"firstName":"John", "lastName":"Doe",
+        "infos": [ 
+        {"msg":"info 1"},
+        {"msg":"info 2"}, 
+        {"msg":"info 3"},
+        ],
+        "errors": [ 
+        {"msg":"error 1"},
+        {"msg":"error 2"}, 
+        {"msg":"error 3"},
+        ]};
+      displayMessages(obj);
+}
+// Show or hide the login
+function showLogin(showIt)
+{
+    if (showIt) {
+        $(".login").show();
+    } else {
+        $(".login").hide();
+    }
+}
+
+function uriForJSON()
+{
+    var uri = document.documentURI;
+    uri = uri.replace(/[^\/]*$/, '')+'jsonAction.php';
+    return uri;
+}
+
+function logonJSON()
+{
+    var result = true;
+    var uri = document.documentURI;
+    uri = uriForJSON();
+    // All input elements of login form
+    var inputs = $("form[name=loginform]  input");
+    var getdata = {};
+    for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].name.length >0) {
+            getdata[inputs[i].name] = inputs[i].value;
+        }
+    }
+    getdata["JSON"] = true;
+    $.getJSON(uriForJSON(),
+        getdata,
+        function(response, status, xhr)
+        {
+            displayMessages(response);
+            if(response["status"] === false) {
+                showLogin(true);
+            } else {
+                showLogin(false);
+                resetMenuJSON();
+            }
+        });
+}
+
+function logoutJSON()
+{
+    resetMenu();
+    var getdata = { JSON: true, action: "JSONlogout"};
+    $.getJSON(uriForJSON(),
+        getdata,
+        function(response, status, xhr)
+        {
+            displayMessages(response);
+            resetMenuJSON(); 
+        });
+}
+
+// Send an authority request, let callBack handle the response
+function ifAuthorized(targetUrl,callBack)
+{
+    var result;
+    var getData = {JSON: true, action:"JSONauthority", "targetURL":targetUrl };
+    $.getJSON(
+        uriForJSON(),
+        getData,
+        callBack
+    );
+}
+
+/**
+ * test if user is authorized to submit form, if so:
+ * submit form through callback function
+ */
+function submitIfAuthorized(elt, event)
+{
+    event.preventDefault();
+    var obj = elt;
+    var eltform = elt.form;
+    var targetUrl = elt.form.getAttribute("action");
+    ifAuthorized(
+        targetUrl,
+        function(response, status, xhr)
+        {
+            displayMessages(response);
+            if (response["authorized"]) {
+                eltform.submit();
+            } else {
+                showLogin(true);
+            }
+        });
+}
+
+/**
+ * Adds onclicks to various types of elements
+ */
+function addOnClicks()
+{
+      $("#login").click(function(){
+        showLogin(true);
+        resetMenu();
+        return false;
+        }
+      );
+      $("#logout").click(function(){
+        logoutJSON();
+        return false;
+        }
+      );
+      /**
+      var submits =$("input[type='submit']")
+      for (var i = 0; i < submits.length;i++)
+      {
+        var submit = submits[i];
+        var form = submit.form;
+        submit.addEventListener("onClick",function(){
+            ifAuthorized(function(response, status, xhr){
+                displayMessages(response);
+                if (response["authorized"]) {
+                    form.submit();
+                    
+                }
+            })
+            return false;
+        });
+      }
+      */
+}
+
+/**
+ * fold up the menu;
+ */
+function resetMenu(menu)
+{
+    /**
+     This should trick the pull-down menu to fold
+    $("#cssmenu").find().mouseout();
+    $("#cssmenu").find().mouseleave();
+    */
+    if (!menu) var menu = $("#cssmenu").html();
+    $("#cssmenu").html("");
+    $("#cssmenu").html(menu);
+    addOnClicks();
+    return false;    
+}
+
+function resetMenuJSON()
+{
+    var getdata = { JSON: true, action: "JSONmenu"};
+    $.getJSON(uriForJSON(),
+        getdata,
+        function(response, status, xhr)
+        {
+            displayMessages(response);
+            resetMenu(response["menu"]); 
+        });
+}
+
+function bulkCheck(event, label, checked)
+{
+    event.preventDefault();
+    $("input[type='checkbox'][name^='"+label+"']").prop('checked', checked);
+    return false;
+}
 	

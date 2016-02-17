@@ -14,7 +14,7 @@
     {/if}
     <div class="heterContent">
     {if $hotItem.news_image != ""}
-	<img src="{$hotItem.news_image}" alt="{$hotItem.news_title}">
+	<img src="{$hotItem.news_image}" alt="{$hotItem.news_title}" class="img_small"/>
     {/if}
     {if $hotItem.news_title != ""}
 	<h3>{$hotItem.news_title}</h3>
@@ -22,7 +22,7 @@
     <p>{$hotItem.news_short}</p>
     <div class="linkLogo">
     <a href="news_leesverder.php?news_id={$hotItem.news_id}">
-    <img src="{$imageRoot}/butt_sm_leesverder.gif">
+    <img src="{$imageRoot}/butt_sm_leesverder.gif" alt="Lees verder">
     </a>
     </div>
     </div>
@@ -35,36 +35,33 @@
 {/if}
 <div class="tweeDelen">
 	<div class="linkerDeel">
-	<div class="titelBalk"><img src="{$imageRoot}/kop_over-ons.gif" ></div>
-		<div id="fb-root" />
-			<p>{$aboutUs}<p>
-		</div>
+	<div class="titelBalk"><img src="{$imageRoot}/kop_over-ons.gif" alt="Over ons"/></div>
+	   	<p>{$aboutUs}<p>
 	</div>
 	<div class="rechterDeel">
-		<div class="titelBalk"><img src="{$imageRoot}/kop_recent-nieuws.gif" ></div>
+		<div class="titelBalk"><img src="{$imageRoot}/kop_recent-nieuws.gif" alt="Recent nieuws"/></div>
 		<div class="recentNieuwsKader">
-		<ul>
 		{$i=0}{$ul=0}
 		{foreach from=$newsItems item=newsItem}
-		    {if $i <2}
-			{$i=$i+1}
+		    {if $i < 2}
 			<div class="recentNieuwsBericht">
 			<span class="nieuwsTitel">{$newsItem.news_title}</span>
 			<p>{$newsItem.news_short}</p>
 			<div class="miniLeesverder">
 			    <a href="news_leesverder.php?news_id={$newsItem.news_id}">
-				<img src="{$imageRoot}/butt_sm_leesverder.gif">
+				<img src="{$imageRoot}/butt_sm_leesverder.gif" alt="Lees verder"/>
 			    </a>
 			</div>
 			</div>
 		    {else}
 			{if $ul==0} <ul> {$ul=1} {/if}
-			<li class="nieuwsTitel"">
+			<li class="nieuwsTitel">
 			    <a href="news_leesverder.php?news_id={$newsItem.news_id}">
 			        {$newsItem.news_title}
 			    </a>
 			</li>
 		    {/if}
+			{$i=$i+1}
 		{/foreach}
 		{if $ul != 0}</ul>{/if}
 		</div>

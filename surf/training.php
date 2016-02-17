@@ -160,7 +160,8 @@ class trainingbeheer
                     $c++;
                 } else
                     if ($start == $userData[$id][$e]["start"]) {
-                        array_push($result[$id]["eventRegister"], $this->makeFormElement($id, $start, $userData[$id][$e]["enrolled"]));
+                        array_push($result[$id]["eventRegister"],
+                            $this->makeFormElement($id, $start, $userData[$id][$e]["enrolled"]));
                         $c++;
                         $e++;
                     } else {
@@ -214,7 +215,10 @@ class trainingbeheer
         $eventList = $this->getEventList(general::TRAINING, date("Y-m-d 00:00")); // start today
         $userDates = $this->getUserDates(date("Y-m-d 00:00"), $currentUserId, array_keys
             ($eventList));
+        //genLogVar(__FUNCTION__." \$eventList", $eventList);
+        genLogVar(__FUNCTION__." \userDates", $userDates);
         $data = $this->toForm($eventList, $userDates);
+        genLogVar(__FUNCTION__." \userDates", $userDates);
 
         $this->userSession->setSessionData(CUID, $currentUserId);
         genSmartyAssign(CUID, $currentUserId);

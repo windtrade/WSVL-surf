@@ -9,7 +9,13 @@ require_once "image.lib.php";
 require_once "userSession.lib.php";
 class htmlelements
 {
+    private $image;
     private $userSession;
+
+    public function __construct()
+    {
+        $this->image = new image();
+    }
 
     public function HEelement($p, &$smarty)
     {
@@ -31,19 +37,65 @@ class htmlelements
 
     public function HEimage($p, &$smarty)
     {
-        if (array_key_exists("id", $p) && $p["id"] <= 0) {
-            return "<!-- " . __function__ . " id=" . $p["id"] . " -->";
+        $start = print_r($p, true);
+        if (!array_key_exists("id", $p))
+            $p["id"] = 0;
+        $img = false;
+        if ($p["id"] > 0) {
+            $img = $this->image->get($p["id"]);
         }
         if (!array_key_exists("size", $p)) {
             $p["size"] = "small";
         }
-        #	print('$p='.print_r($p, TRUE));
-        if (array_key_exists("id", $p)) {
-            $result = image::getUrl($p["id"], $p["size"]);
+        ;
+        if ($img) {
+            $src = image::getUrl($p["id"], $p["size"]);
         } else {
-            $result = image::imageNotFound($p["size"]);
+            $src = image::imageNotFound($p["size"]);
+            $img["description"] = "geen plaatje";
         }
-        $result = '<img src="' . $result . '" />';
+        $result = '<img src="' . $src . '"';
+        $result .= ' class="img_' . $p["size"] . '"';
+        $result .= ' alt="' . $img["description"] . '"';
+        $result .= ' />';
+        $result .= "\n<!-- voor $p=" . $start . "\n na \$p=" . print_r($p, true) . " -->\n";
+        return $result;
+    }
+
+    public function HEanchor($p, $smarty)
+    {
+        $attributes = " ";
+        $href = "#";
+        $inner = "Naar nergens";
+        foreach ($p as $key => $val) {
+            switch (strtolower($key)) {
+            case "href":
+                $href = $val;
+                break;
+            case "inner":
+                $inner = $val;
+                break;
+            default:
+                $attributes .= $key.'="'.$val.'" ';
+            }
+        }
+        $result = "";
+        $result .= "<!-- " . print_r($r, true) . " -->";
+        if ($href != "#" && !preg_match('/:\:\//', $href)) {
+            $href = "http://" . $href;
+        }
+        $pattern = '/^([^?]*)[?]*(.*)/';
+        $page = preg_replace($pattern, "$1", $href);
+        $query = preg_replace($pattern, "$2", $href);
+        $result .= "<a " . 'href="' . $page;
+        if (strlen($query)) {
+            $result .= '?' . urlencode($query);
+        }
+        $result .= '"';
+        $result .= $attributes;
+        $result .= '>';
+        $result .= $inner;
+        $result .= '</a>';
         return $result;
     }
 
@@ -90,8 +142,22 @@ class htmlelements
             $class = $p["has-sub"];
         }
         $classAttr = ($class == "" ? "" : "class='$class'");
-        $result .= "<li $classAttr>" . "<a href='" . $elt["url"] . "?tab=" . $elt["tab"] .
-            "'>" . "<span>" . $elt["label"] . "</span>" . "</a>\n";
+        $result .= "<li $classAttr>";
+        /**
+         * On-click functionality is added in document.ready function
+         */
+        if (array_key_exists("onclick", $elt) && $elt["onclick"] != "") {
+            $result .= "<a id='" . $elt["onclick"] . "'" . " href='#'" . ">" . "<span>" . $elt["label"] .
+                "</span>" . "</a>\n";
+        } elseif (array_key_exists("url", $elt) && $elt["url"] != "") {
+            $result .= "<a href='" . $elt["url"];
+            if (array_key_exists("tab", $elt)) {
+                $result .= "?tab=" . $elt["tab"];
+            }
+            $result .= "'>" . "<span>" . $elt["label"] . "</span>" . "</a>\n";
+        } else {
+            $result .= "<span>" . $elt["label"] . "</span>";
+        }
         if ($hasSub) {
             $result .= "<ul>\n";
             $last = array_pop($elt["subMenu"]);
@@ -110,23 +176,31 @@ class htmlelements
         if (!array_key_exists("menu", $p) or !is_array($p["menu"])) {
             return "<!-- no menu available " . print_r($p, true) . "-->\n";
         }
-        $p["id"] = $this->heGetParam($p, "id", "cssmenu");
+        $p["id"] = $this->heGetParam($p, "id", "");
         $p["has-sub"] = $this->heGetParam($p, "has-sub", "has-sub");
         $p["last"] = $this->heGetParam($p, "last", "last");
-        $result = "<div id='" . $p["id"] . "'>\n<ul>";
+        $result = "";
+        if ($p["id"]) {
+            $result .= "<div id='" . $p["id"] . "'>\n";
+        }
+        $result .= "<ul>\n";
         $last = array_pop($p["menu"]);
         foreach ($p["menu"] as $elt) {
             $result .= $this->heCssMenuElement($p, "", $elt);
         }
         $result .= $this->heCssMenuElement($p, $p["last"], $last);
-        $result .= "</ul>\n</div>";
-        genSetError($result);
+        $result .= "</ul>\n";
+        if ($p["id"]) {
+            $result .= "</div>";
+        }
         return $result;
     }
 
-    /*
-    * remove all arguments from $uri except those mentioned in $keep
-    */
+    /**
+     * remove all arguments from $uri except those mentioned in $keep
+     * use:
+     * {HEbuildURI [uri="<uri>"] [keep=<arg1,arg2,..>] [argX=val [argY=val]]}
+     */
     public function HEbuildURI($p, &$smarty)
     {
         $keep = array();
@@ -156,14 +230,15 @@ class htmlelements
         }
         $newargs = join($newargs, "&");
         $uri .= "?" . $newargs;
-        return $uri;
+        return $_SERVER["SERVER_NAME"] . $uri;
+        genLogVar('server_name=', $_SERVER["SERVER_NAME"]);
     }
 
     // Add buttons to share on social media
     public function HEsocial($p, &$smarty)
     {
         $pageURL = genCurPageURL($p);
-        $result = "<p>";
+        $result = "";
         // Facebook
         $result .= "<div class=\"fb-share-button\" ";
         $result .= "data-href=\"" . $pageURL . "\" ";
@@ -176,7 +251,6 @@ class htmlelements
         $result .= "data-size=\"large\">";
         $result .= "Tweet</a>";
         */
-        $result .= "</p>";
         return $result;
     }
 }

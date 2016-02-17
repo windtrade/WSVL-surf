@@ -23,9 +23,7 @@
     {$item.image = 0}
 {/if}
 
-<div class="heter">
-<div class="heterContent">
-{HEimage id="{$item.image}" size="small"}
+{HEimage id="{$item.image}" size="large"}
 <h2>{$item.title} {$currentEventItem.name}</h2>
 <h3>{$currentEventItem.startText}</h3>
 <h3>{if $currentEventItem.location == "" and $currentEventItem.url != ""}
@@ -34,7 +32,7 @@
 {if $currentEventItem.location != ""}
 <br/>
 {if $currentEventItem.url != ""}
-<a href="{$currentEventItem.url}">{$currentEventItem.location}</a>
+{HEanchor href="{$currentEventItem.url}" inner={$currentEventItem.location}}
 {else}
 {$currentEventItem.location}
 {/if}
@@ -65,9 +63,7 @@
 </tr>
 </table>
 </form>
-<p>{HEsocial currentEventId="{$currentEventItem.id}" currentStart="{$currentEventItem.start}"}</p>
-</div>
-</div>
+<div>{HEsocial currentEventId="{$currentEventItem.id}" currentStart="{$currentEventItem.start}"}</div>
 {/block}
 {block name="linkerDeel"}
 <table>
@@ -93,7 +89,8 @@
 </td>
 <td><div class="calendarH2">{$item.date[2]}</div></td>
 <td>
-<a href="{HEbuildURI keep="tab" currentEventId={$item.id} currentStart={$item.start}}">{$item.title} {$item.name}</a>
+{assign var=href value={HEbuildURI keep="tab" currentEventId={$item.id} currentStart={$item.start}}}
+{HEanchor href={$href} inner="{$item.title} {$item.name}"}
 {if $item.location == "" and $item.url != ""}
 {$item.location="info"}
 {/if}

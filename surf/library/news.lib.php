@@ -135,7 +135,7 @@ class news extends table
         } else {
             genSetError($this->tbDefine . " not defined");
         }
-        $this->structure["news_rubriek_id"] = general::getCategoryDefinition();
+        $this->structure    ["news_rubriek_id"] = general::getCategoryDefinition();
     }
 
     public function getPublic() # Select all public News
@@ -176,7 +176,7 @@ class news extends table
             return $result;
         if ($this->returnHTML) {
             foreach ($result as $k => $v) {
-                if (is_array($this->structure[$k])) {
+                if (array_key_exists($k, $this->structure) && is_array($this->structure[$k])) {
                     if ($this->structure[$k]["type"] == "text"
                     || $this->structure[$k]["type"] == "textarea") {
                         $result[$k] = genParseDownParse($v);

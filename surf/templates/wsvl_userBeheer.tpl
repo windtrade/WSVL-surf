@@ -27,10 +27,10 @@ action="{$smarty.server.REQUEST_URI}">
 <tr><td>Herhaal nieuw wachtwoord</td><td><input type="password" name="fd[pw][chkWachtwoord]"/></tr>
 <tr>
 <td>
-<input type="submit" value="Wijzigen">
+{HFsubmit value="Wijzigen"}
 </td>
 <td>
-<input type="reset" value="Herstellen">
+{HFreset value="Herstellen"}
 </td>
 </tr>
 </table>
@@ -53,10 +53,10 @@ action="{$smarty.server.REQUEST_URI}">
 {/foreach}
 <tr>
 <td>
-<input type="submit" value="Opslaan">
+{HFsubmit value="Opslaan"}
 </td>
 <td>
-<input type="reset" value="Herstellen">
+{HFreset value="Herstellen"}
 </td>
 </tr>
 </table>
@@ -80,10 +80,10 @@ action="{$smarty.server.REQUEST_URI}">
 {/foreach}
 <tr>
 <td>
-<input type="submit" value="Opslaan">
+{HFsubmit value="Opslaan"}
 </td>
 <td>
-<input type="reset" value="Herstellen">
+{HFreset value="Herstellen"}
 </td>
 </tr>
 </table>

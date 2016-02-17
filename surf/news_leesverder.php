@@ -38,7 +38,7 @@ function buildNewsItem($newsObj, &$newsArr)
     $newsArr = $newsObj->get4HTML($_REQUEST["news_id"]);
     if ($newsArr === false)
         $newsArr = array();
-    $newsArr["news_img_url"] = "";
+    $newsArr["news_imgUrl"] = "";
     if ($newsArr["news_image"] > 0) {
         $newsArr["news_imgUrl"] = $img->getUrl($newsArr["news_image"], "large");
     }
@@ -52,7 +52,7 @@ function buildNewsItem($newsObj, &$newsArr)
             $description = $newsArr["news_message"];
         }
     if (strlen($description) >= 100) {
-        $description = mb_substr($desciption, 0, 96) . " ...";
+        $description = mb_substr($description, 0, 96) . " ...";
     }
     genSmartyAssign("description", $description);
 

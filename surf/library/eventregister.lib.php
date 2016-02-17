@@ -79,6 +79,7 @@ class eventregister extends table
 	$queryArr = array();
 	$this->addTerm($queryArr, "id", "=", $id);
 	$this->addTerm($queryArr, "start", "=", $start);
+    $this->addTerm($queryArr,"enrolled", "!=", 0);
 	$query = $this->readQuery($queryArr, array("start" => "ASC"));
 	if (!$query) return $retval;
 	while ($row = $this->fetch_assoc($query)) {
