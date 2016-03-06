@@ -6,19 +6,20 @@
 {extends file="wvLeidschendam.tpl"}
 {block name="body"}
 <div class="heter">
+<div class="heterContent">
 {block name="topDeel"}
 Nog in te vullen
 {/block}
 </div>
 <div class="heterBottom">
 {block name="topOnderkant"}
-<img src="images/komjijooktrainen.gif" width="442" height="47" style="align:right" alt="Kom jij ook trainen?"/>
+<img src="images/heter_dan_de_overstag.gif" width="442" height="47" style="align:right" alt="Heter dan de Overstag"/>
 {/block}
+</div>
 </div>
 <div class="linkerDeel">
 <div class="titelBalk">
 {block name="linkerTitel"}
-<img src="images/kop_informatie.gif" width="186" height="29" alt="Informatie"/>
 {/block}
 </div>
 {block name="linkerDeel"}

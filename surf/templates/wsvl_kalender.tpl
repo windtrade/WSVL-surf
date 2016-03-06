@@ -23,22 +23,23 @@
     {$item.image = 0}
 {/if}
 
-{HEimage id="{$item.image}" size="large"}
+{HEimage id="{$item.image}" size="small"}
 <h2>{$item.title} {$currentEventItem.name}</h2>
 <h3>{$currentEventItem.startText}</h3>
-<h3>{if $currentEventItem.location == "" and $currentEventItem.url != ""}
+{if $currentEventItem.location == "" and $currentEventItem.url != ""}
 {$currentEventItem.location="info"}
 {/if}
 {if $currentEventItem.location != ""}
-<br/>
+<h3>
 {if $currentEventItem.url != ""}
 {HEanchor href="{$currentEventItem.url}" inner={$currentEventItem.location}}
 {else}
 {$currentEventItem.location}
 {/if}
-{/if}</h3>
-<p>{$item.text}</p>
-<p>{$item.detail}</p>
+</h3>
+{/if}
+{$item.text}
+{$item.detail}
 </div>
 <div class="heterContent">
 <form id="kalender" enctype="multipart/form-data" method="POST" action="{$smarty.server.REQUEST_URI}">
@@ -89,7 +90,7 @@
 </td>
 <td><div class="calendarH2">{$item.date[2]}</div></td>
 <td>
-{assign var=href value={HEbuildURI keep="tab" currentEventId={$item.id} currentStart={$item.start}}}
+{assign var=href value={HEbuildURI keep="tab" currentEventId="{$item.id}" currentStart={$item.start}}}
 {HEanchor href={$href} inner="{$item.title} {$item.name}"}
 {if $item.location == "" and $item.url != ""}
 {$item.location="info"}

@@ -129,13 +129,13 @@ function addInputRow( nextRow, label, type, disabled, value)
  * obj = { block: [ {property:val, ...} , ...  ], ...}
  * msg is the most common property
  */
-function displayMessages(obj)
+function displayMessages(obj, keep)
 {
     var blocks = ["errors", "infos"];
     for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i];
         if ($("."+ block)) {
-            $("."+ block).html("")
+            if (!keep) $("."+ block).html("")
             var list = obj[block];
             $.each(list, function(key, val) {
                 for (property in val) {
@@ -160,7 +160,7 @@ function testDisplayMessages()
         {"msg":"error 2"}, 
         {"msg":"error 3"},
         ]};
-      displayMessages(obj);
+      displayMessages(obj, false);
 }
 // Show or hide the login
 function showLogin(showIt)
@@ -197,7 +197,7 @@ function logonJSON()
         getdata,
         function(response, status, xhr)
         {
-            displayMessages(response);
+            displayMessages(response, false);
             if(response["status"] === false) {
                 showLogin(true);
             } else {
@@ -215,7 +215,7 @@ function logoutJSON()
         getdata,
         function(response, status, xhr)
         {
-            displayMessages(response);
+            displayMessages(response,false);
             resetMenuJSON(); 
         });
 }
@@ -246,7 +246,7 @@ function submitIfAuthorized(elt, event)
         targetUrl,
         function(response, status, xhr)
         {
-            displayMessages(response);
+            displayMessages(response, false);
             if (response["authorized"]) {
                 eltform.submit();
             } else {
@@ -271,24 +271,6 @@ function addOnClicks()
         return false;
         }
       );
-      /**
-      var submits =$("input[type='submit']")
-      for (var i = 0; i < submits.length;i++)
-      {
-        var submit = submits[i];
-        var form = submit.form;
-        submit.addEventListener("onClick",function(){
-            ifAuthorized(function(response, status, xhr){
-                displayMessages(response);
-                if (response["authorized"]) {
-                    form.submit();
-                    
-                }
-            })
-            return false;
-        });
-      }
-      */
 }
 
 /**
@@ -315,7 +297,7 @@ function resetMenuJSON()
         getdata,
         function(response, status, xhr)
         {
-            displayMessages(response);
+            displayMessages(response, true);
             resetMenu(response["menu"]); 
         });
 }

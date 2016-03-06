@@ -205,7 +205,7 @@ class general
                         $val = "WV Leidschendam, de vaart erin sinds 1982";
                         break;
                     case "site_name":
-                        $val = "WVLeidschendam Windsurfles, -trainingen, -wedstrijden en weekends";
+                        $val = "WVLeidschendam Windsurfles, -trainingen, -wedstrijden en -weekends";
                         break;
                     case "image":
                         $val = DEFAULT_OG_IMAGE;
@@ -279,6 +279,7 @@ class general
         }
         $this->smarty->assign('mustLogin', $mustLogin);
         $this->addJavascriptDeclaration("gLoggedIn", $_SESSION['loggedIn']);
+        $this->smarty->assign('loggedIn', $_SESSION['loggedIn']);
         if ($_SESSION['loggedIn']) {
             $this->smarty->assign('session_name', $_SESSION['user']['nick']);
         }
@@ -296,8 +297,10 @@ class general
     public function parseDownText($text)
     {
         $result = $this->parsedown->text($text);
+        return $result;
     }
 
+    /** Convert Markdown text to HTML */
     public function parseDownParse($text)
     {
         return $this->parsedown->parse($text);
@@ -909,10 +912,10 @@ function genCurPageURL()
     }
     $elts = array();
     foreach ($params as $key => $val) {
-        array_push($elts, "$key=$val");
+        array_push($elts, "$key=".urlencode($val));
     }
     if (count($elts)) {
-        $pageURL .= "?" . urlencode(implode('&', $elts));
+        $pageURL .= "?" . implode('&', $elts);
     }
     return $pageURL;
 }

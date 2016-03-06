@@ -108,11 +108,12 @@ class userSession
         return $ok;
     }
 
-    private function logout()
+    private function logout($quiet)
     {
         if ($_SESSION["loggedIn"]) {
-        $_SESSION["loggedIn"] = 0;
-        if ($quiet) genSetInfo("U bent nu afgemeld");
+            $_SESSION["loggedIn"] = 0;
+            if (!$quiet)
+                genSetInfo("U bent nu afgemeld");
         }
     }
 
@@ -125,15 +126,17 @@ class userSession
         $known = $known && isset($_SESSION["user"]["lastActive"]);
         $known = $known && isset($_SESSION["user"]["lastAddress"]);
         if ($known) {
-            if ((($nowTS - $_SESSION["user"]["lastActive"]) > (SESSION_TIMEOUT * 60)) || 
-                ($_SESSION["user"]["lastAddress"] <> $_SERVER["REMOTE_ADDR"])) {
-                 if ($mustLogin && $this->isLoggedIn()) {    
-                    genSetError("Uw sessie is verlopen");
+            if ((($nowTS - $_SESSION["user"]["lastActive"]) > (SESSION_TIMEOUT * 60)) || ($_SESSION["user"]["lastAddress"] <>
+                $_SERVER["REMOTE_ADDR"])) {
+                if ($this->isLoggedIn()) {
+                    if ($mustLogin) {
+                        genSetError("Uw sessie is verlopen");
+                    }
+                    $this->logout(false);
                 }
-                $this->logout($mustLogin === false);
             }
         } else {
-            $_SESSION["loggedIn"] = 0;
+            $this->logout(false);
         }
         $_SESSION["user"]["lastActive"] = $nowTS;
         $_SESSION["user"]["lastAddress"] = $_SERVER["REMOTE_ADDR"];
@@ -169,18 +172,13 @@ class userSession
 
     public function JSONlogout()
     {
-        genLogVar(__file__ . ":" . __class__ . ":" . __function__ . "-" . __line__ .
-            '$_GET', $_GET);
-        genLogVar(__file__ . ":" . __class__ . ":" . __function__ . "-" . __line__ .
-            '$_POST', $_POST);
-        genLogVar(__file__ . ":" . __class__ . ":" . __function__ . "-" . __line__ .
-            '$_REQUEST', $_REQUEST);
         $response["status"] = false;
         $json = $_GET;
         if (array_key_exists("JSON", $json)) {
             if (array_key_exists("action", $json) && $json["action"] == "JSONlogout") {
                 genLogVar(__file__ . ":" . __function__ . ":" . __line__ . ":json", $json);
                 $this->logout();
+                genSetInfo("Je bent afgemeld...");
                 $response["status"] = true;
             } else {
                 GenSetError("Ongelukkig formaat opdracht, sorry");

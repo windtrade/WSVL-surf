@@ -4,7 +4,6 @@
  * 25-12-2012: Huug Peters
  *}
 {extends file="wvLeidschendam.tpl"}
-{block name="title"}WV Leidschendam Nieuws{/block}
 {block name="body"}
 {$heterOpen=0}
 {foreach from=$hotNews item=hotItem}

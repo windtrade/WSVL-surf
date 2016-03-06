@@ -58,7 +58,7 @@ class htmlelements
         $result .= ' class="img_' . $p["size"] . '"';
         $result .= ' alt="' . $img["description"] . '"';
         $result .= ' />';
-        $result .= "\n<!-- voor $p=" . $start . "\n na \$p=" . print_r($p, true) . " -->\n";
+        // $result .= "\n<!-- voor \$p=" . $start . "\n na \$p=" . print_r($p, true) . " -->\n";
         return $result;
     }
 
@@ -68,7 +68,7 @@ class htmlelements
         $href = "#";
         $inner = "Naar nergens";
         foreach ($p as $key => $val) {
-            switch (strtolower($key)) {
+            switch (strtolower($key)) { 
             case "href":
                 $href = $val;
                 break;
@@ -76,11 +76,11 @@ class htmlelements
                 $inner = $val;
                 break;
             default:
-                $attributes .= $key.'="'.$val.'" ';
+                $attributes .= $key.'="'.urlencode($val).'" ';
             }
         }
         $result = "";
-        $result .= "<!-- " . print_r($r, true) . " -->";
+        /** $result .= "<!-- " . print_r($p, true) . " -->"; */
         if ($href != "#" && !preg_match('/:\:\//', $href)) {
             $href = "http://" . $href;
         }
@@ -89,7 +89,7 @@ class htmlelements
         $query = preg_replace($pattern, "$2", $href);
         $result .= "<a " . 'href="' . $page;
         if (strlen($query)) {
-            $result .= '?' . urlencode($query);
+            $result .= '?' . $query;
         }
         $result .= '"';
         $result .= $attributes;
@@ -116,7 +116,7 @@ class htmlelements
                 $result .= "<h1>" . $text["titel"] . "</h1>";
             }
             if (array_key_exists("tekst", $text)) {
-                $result .= "<p>" . $text["tekst"] . "</p>";
+                $result .= $text["tekst"];
             }
         }
         return $result;
@@ -212,7 +212,7 @@ class htmlelements
             } elseif ($key == "uri") {
                 $uri = $val;
             } else {
-                array_push($newargs, "$key=$val");
+                array_push($newargs, "$key=".urlencode($val));
             }
         }
         $parts = preg_split("/[?]/", $uri);
@@ -238,7 +238,7 @@ class htmlelements
     public function HEsocial($p, &$smarty)
     {
         $pageURL = genCurPageURL($p);
-        $result = "";
+        $result = ""; 
         // Facebook
         $result .= "<div class=\"fb-share-button\" ";
         $result .= "data-href=\"" . $pageURL . "\" ";

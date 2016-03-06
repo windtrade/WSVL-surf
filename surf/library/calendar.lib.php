@@ -88,6 +88,8 @@ class Calendar extends table
 	    "protected"  => "0",
 	    "check" => "")
 	);
+    
+    private $returnHTML = false;
 
 	public function __construct()
 	{
@@ -112,9 +114,12 @@ class Calendar extends table
 		array("id", "start"),
 		"DISTINCT");
 	    if (!$query) return $retval;
+        $oldReturnHTML = $this->returnHTML;
+        $this->returnHTML = true;
 	    while ($row = $this->fetch_assoc($query))  {
-		array_push($retval, $row);
+		  array_push($retval, $row);
 	    }
+        $this->returnHTML = $oldReturnHTML;    
 	    return $retval;
 	}
 
@@ -129,9 +134,12 @@ class Calendar extends table
 		array("start" => "ASC")
 	    );
 	    if (!$query) return $retval;
+        $oldReturnHTML = $this->returnHTML;
+        $this->returnHTML = true;
 	    while ($row = $this->fetch_assoc($query)) {
 		array_push($retval, $row);
 	    }
+        $this->returnHTML = $oldReturnHTML;
 	    return $retval;
 	}
 
@@ -151,9 +159,12 @@ class Calendar extends table
 		$this->tbError(NULL);
 		return $retval;
 	    }
-	    while ($row = $this->fetch_assoc($result)) {
-		array_push($retval, $row);
+        $oldReturnHTML = $this->returnHTML;
+        $this->returnHTML = true;
+	    while ($row = $this->fetch_assoc($query)) {
+            array_push($retval, $row);
 	    }
+        $this->returnHTML = $oldReturnHTML;
 	    return $retval;
 	}
 

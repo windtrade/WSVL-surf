@@ -65,6 +65,7 @@ class kalender
         $query = $this->event->readQuery($whereArray);
         if ($query) {
             while ($row = $this->event->fetch_assoc($query)) {
+                $this->event->parseDown($row);
                 $result["event"][$row["id"]] = $row;
             }
         }
@@ -175,7 +176,7 @@ class kalender
                 }
             }
         }
-        $userData = genGetPageCache("users");
+        $userData = ($this->userSession->isLoggedIn()? genGetPageCache("users"): false);
         if ($userData === false)
             $userData = array();
         $result["form"]["users"] = $this->users->toForm($userData, $this->userSession, null,

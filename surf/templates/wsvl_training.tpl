@@ -20,12 +20,15 @@ function refresh(field, value) {
  aanmelding{if count($item.names) != 1}en{/if}
  voor de training van {$item.start}
 </p>
-<ul>
-{foreach $item.names as $aanmelding}
-<li>
-{$aanmelding}
-{/foreach}
-</ul>
+{if $loggedIn}
+    <ul>
+    {foreach $item.names as $aanmelding}
+        <li>
+            {$aanmelding}
+        </li>
+    {/foreach}
+    </ul>
+{/if}
 {/foreach}
 </div>
 <div class="rightFloat70pct">
@@ -110,11 +113,17 @@ Kies wie je wilt aanmelden:
 </div>
 </div>
 {/block}
+{block name="topOnderkant"}
+<img src="images/komjijooktrainen.gif" width="442" height="47" style="align:right" alt="Kom jij ook trainen?"/>
+{/block}
 {block name="linkerDeel"}
 {foreach $information as $info}
 <span class="nieuwsTitel">{$info.titel}</span>
 <p>{$info.tekst}</p>
 {/foreach}
+{/block}
+{block name="rechterTitel"}
+<img src="images/kop_nog-meer.gif" width="188" height="31" alt="Nog meer..."/>
 {/block}
 {block name="rechterDeel"}
 <div class="recentNieuwsKader">

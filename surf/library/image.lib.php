@@ -13,9 +13,9 @@ require_once "table.lib.php";
 class image extends table
 {
 
-const largeWidth = 600;
-const smallWidth = 300;
-const thumbWidth = 75;
+    const largeWidth = 600;
+    const smallWidth = 300;
+    const thumbWidth = 75;
     private $tbDefine = "SQL_TBIMAGE";
 
     protected $structure = array(
@@ -91,10 +91,22 @@ const thumbWidth = 75;
         }
         $this->structure["category"] = general::getCategoryDefinition();
     }
-    
+
     public function get($id)
     {
-        return parent::get(array(array("col" => "id", "oper" => "=", "val" => $id)));
+        return parent::get(array(array(
+                "col" => "id",
+                "oper" => "=",
+                "val" => $id)));
+    }
+
+    /** return outer dimensions of any image (large/small/thumb) */
+    public static function dimensions()
+    {
+        return array(
+            "large" => array("w" => 600, "h" => 450),
+            "small" => array("w" => 300, "h" => 225),
+            "thumb" => array("w" => 75, "h" => 56));
     }
 
     private function getFileAttr($filename, $attr)
@@ -176,6 +188,27 @@ const thumbWidth = 75;
         $result = IMAGE_ROOT_URL . image::relativeDirFromId($id) . $fileName;
         return $result;
 
+    }
+
+    /** return the the sizes for all sizes  */
+    private static function getNewSizes($old, &$o)
+    {
+        list($o["w"], $o["h"], $o["imgType"]) = getImageSize($old);
+        $dim = image::dimensions();
+        $nS = $dim;
+        $long = "w";
+        $short = "h";
+        if ($o["w"] < $o["h"]) {
+            $short = "w";
+            $long = "h";
+        }
+        foreach (array_keys($dim) as $key) {
+            if ($dim[$key][$long] < $o[$long]) {
+                $nS[$key][$long] = $dim[$key][$long];
+                $nS[$key][$short] = ceil($dim[$key][$long] * $o[$short] / $o[$long]);
+            }
+        }
+        return $nS;
     }
 
     private static function getOldUrl($id, $size)
@@ -266,8 +299,9 @@ const thumbWidth = 75;
     * save the uploaded file, make small and a thumbnail copy
     * the name of the field name of the uploaded image is part of $new
     */
-    public function insert($new)
+    public function insert(&$new)
     {
+        $result = true;
         $tmp = $this->getFileAttr($new["fileField"], 'tmp_name');
         unset($new["fileField"]);
         if ($tmp === false)
@@ -286,7 +320,7 @@ const thumbWidth = 75;
                 $error = "No directory for image $dest";
                 genSetError($error);
                 genLogVar("Error", $error);
-                return;
+                $result = false;
             }
         } else {
             $old_umask = umask(0);
@@ -294,41 +328,23 @@ const thumbWidth = 75;
                 $error = "Cannot create directory for image $dirname";
                 genSetError($error);
                 genLogVar("Error", $error);
-                umask($old_umask);
-                return false;
+                $result = false;
             }
             umask($old_umask);
-            if (file_exists($dirname)) {
-            } else {
+        }
+        if ($result) {
+            $sizes = $this->getNewSizes($tmp, $orig);
+            $imOrig = $this->imageFromAnything($tmp, $orig["imgType"]);
+            $ext = image_type_to_extension($orig["imgType"]);
+            $result = ($imOrig != false);
+        }
+        if ($result) {
+            foreach ($sizes as $size => $dim) {
+                $newImg = imagecreatetruecolor($dim["w"], $dim["h"]);
+                $result = imagecopyresampled($newImg, $imOrig, 0, 0, 0, 0, $dim["w"], $dim["h"], $orig["w"], $orig["h"]);
+                $result = $this->imageAnything($newImg, $dirname . $dest . "_".$size . $ext, $orig["imgType"]);
             }
         }
-        list($width, $height, $imgType) = getImageSize($tmp);
-        $imOrig = $this->imageFromAnything($tmp, $imgType);
-        $ext = image_type_to_extension($imgType);
-        if ($imOrig === false)
-            return false;
-        $largeHeight = round($height * image::largeWidth / $width);
-        $smallHeight = round($height * image::smallWidth / $width);
-        $thumbHeight = round($height * image::thumbWidth / $width);
-        $imLarge = imagecreatetruecolor(image::largeWidth, $largeHeight);
-        $imSmall = imagecreatetruecolor(image::smallWidth, $smallHeight);
-        $imThumb = imagecreatetruecolor(image::thumbWidth, $thumbHeight);
-        imagecopyresized($imLarge, $imOrig, 0, 0, 0, 0, image::largeWidth, $largeHeight, $width,
-            $height);
-        imagecopyresized($imSmall, $imOrig, 0, 0, 0, 0, image::smallWidth, $smallHeight, $width,
-            $height);
-        imagecopyresized($imThumb, $imOrig, 0, 0, 0, 0, image::thumbWidth, $thumbHeight, $width,
-            $height);
-        $result = $this->imageAnything($imOrig, $dirname . $dest . $ext, $imgType);
-        if ($result === false)
-            return false;
-        $result = $this->imageAnything($imLarge, $dirname . $dest . "_large" . $ext, $imgType);
-        if ($result === false)
-            return false;
-        $result = $this->imageAnything($imSmall, $dirname . $dest . "_small" . $ext, $imgType);
-        if ($result === false)
-            return false;
-        $result = $this->imageAnything($imThumb, $dirname . $dest . "_thumb" . $ext, $imgType);
         return $result;
     }
 }

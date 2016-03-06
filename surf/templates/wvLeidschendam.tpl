@@ -1,13 +1,13 @@
 <!DOCTYPE HTML>
-<HTML>
+<html>
 <head>
 <meta name="viewport" content="width=device-width, height=device-height"/>  
 <meta http-equiv="Content-type" content="text/html;charset=utf-8"/>
-<meta name="google" content="notranslate">
+<meta name="google" content="notranslate"/>
 <meta name="description" content="Windsurfvereniging Leidschendam e.o. op het surfstrand van Vlietland. Daar vind je windsurfles, training, clubwedstrijde, windsurfweekends en nog veel meer." />
 <meta name="keywords" content="surfen,windsurfen,surfing,surfclub,windsurfclub,vereniging,surfvereniging,windsurfing,surfles,vlietland,recreatiegebied,vlietlanden,vliet,leidschendam,leiden,voorschoten,voorburg,denhaag,den-haag, den haag,wassenaar,leiderdorp,zoeterwoude,nootdorp,leren,surfen,surfcursus,windsurfcursus,plankzeilen,wedstrijden,instructie,beginners,beginnersles,KNWV,Watersportverbond,formula,slalom,plankzeilen,courserace,training,thema,avonden,gijpen,overstag,planeren,waterstart,waterstarten,plane,zuid-holland,zuid holland, nederland,europa">
 <link href="{$stylesheet}" rel="stylesheet" type="text/css"/>
-<title>{block name="title"}Informatie | Windsurfvereniging Leidschendam en omstreken{/block}</title>
+<title>{block name="title"}{$og.title}{/block}</title>
 {foreach $og as $tag => $val}
 <meta property="og:{$tag}" content="{$val}" />
 {/foreach}
@@ -31,6 +31,7 @@
    });
 </script>
 {/if}
+</head> 
 <body>
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -57,7 +58,7 @@ fjs.parentNode.insertBefore(js, fjs);
  
   return t;
 }(document, "script", "twitter-wjs"));
-</script>   
+</script>
 <div class="contentArea">
 <!-- NAVIGATIE MENU BALK MET LOGO -->
 <div class="navHeader" id="navHeader">

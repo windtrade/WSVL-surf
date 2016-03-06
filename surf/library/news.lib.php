@@ -168,7 +168,7 @@ class news extends table
         return $result;
     }
 
-    // Text fields are marked down
+    /** Text fields are marked down */
     public function fetch_assoc($query)
     {
         $result = parent::fetch_assoc($query);
@@ -177,8 +177,7 @@ class news extends table
         if ($this->returnHTML) {
             foreach ($result as $k => $v) {
                 if (array_key_exists($k, $this->structure) && is_array($this->structure[$k])) {
-                    if ($this->structure[$k]["type"] == "text"
-                    || $this->structure[$k]["type"] == "textarea") {
+                    if ($this->structure[$k]["type"] == "textarea") {
                         $result[$k] = genParseDownParse($v);
                     }
                 }

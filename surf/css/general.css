@@ -1,4 +1,4 @@
-body {
+    body {
 	font-family: Verdana, Arial, Geneva, Helvetica, sans-serif;
 	font-size: 11px;
 	color: #000000;
@@ -298,6 +298,16 @@ body {
 .currentPageMenu {
 	background-color: #2386B8;
 }
+
+.infos {
+    background-color: #FFFFFF;
+    background-image: none;
+    font-style: italic;
+}
+.errors {
+    background-color: #FFFFFF;
+    font-weight: bold;
+}
 .login {
 	background-color: #0392D9;
 	color: #FFFFFF;
@@ -388,6 +398,8 @@ padding: 10px;
 .linkerDeel p img, #infoTeksten img {
 	border: 1px solid #000000;
 	margin: 1em;
+    margin-left: 1em;
+    margin-right: 1em;
 	/* margin: 4px; */
 }
 .linkerDeel h1 h2 h3 {

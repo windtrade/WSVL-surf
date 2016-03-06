@@ -8,7 +8,6 @@
 {block name="topdeel"}
 {if count($teksten) > 0}
 <h1>{$teksten[0].titel}</h1>
-<br/>
 {$teksten[0].tekst}
 <br/>
 {/if}
@@ -43,9 +42,7 @@ Vul onderstaand formulier in om je op te geven voor de starterscursus:
 {block name="linkerDeel"}
 {for $i=1 ; $i < count($teksten) ; $i++}
 <h1>{$teksten[$i].titel}</h1>
-<p>
 {$teksten[$i].tekst}
-</p>
 {/for}
 {/block}
 {block name="rechterDeel"}
