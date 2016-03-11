@@ -193,6 +193,10 @@ class general
         }
     }
 
+    /**
+     * add object graph (og) data to smarty
+     * HTML tags are removed from text values;
+     */
     private function smartyAddOG()
     {
         foreach ($this->og as $key => $val) {
@@ -211,6 +215,7 @@ class general
                         $val = DEFAULT_OG_IMAGE;
                 }
             }
+            $val = preg_replace('/<[^>]>/', '', $val);
             if ($key == "image")
                 $val = image::getUrl($val, "large");
             $this->og[$key] = $val;
