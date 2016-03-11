@@ -287,10 +287,10 @@ class general
         $this->smarty->assign('stylesheet', STYLESHEET_0);
         $this->smarty->assign('javascriptFiles', $this->javascriptFiles);
         $this->smarty->assign('javascriptStatements', $this->javascriptStatements);
+        $this->smartyAddOG();
         $this->smarty->assign('errors', $this->errors);
         $this->smarty->assign('infos', $this->infos);
         $this->smarty->assign('traces', $this->traces);
-        $this->smartyAddOG();
         $this->smarty->display($template);
     }
 
@@ -912,7 +912,7 @@ function genCurPageURL()
     }
     $elts = array();
     foreach ($params as $key => $val) {
-        array_push($elts, "$key=".urlencode($val));
+        array_push($elts, "$key=".urlencode(urldecode($val)));
     }
     if (count($elts)) {
         $pageURL .= "?" . implode('&', $elts);

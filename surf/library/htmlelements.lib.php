@@ -58,13 +58,12 @@ class htmlelements
         $result .= ' class="img_' . $p["size"] . '"';
         $result .= ' alt="' . $img["description"] . '"';
         $result .= ' />';
-        // $result .= "\n<!-- voor \$p=" . $start . "\n na \$p=" . print_r($p, true) . " -->\n";
         return $result;
     }
 
     public function HEanchor($p, $smarty)
     {
-        $attributes = " ";
+        $attributes = "";
         $href = "#";
         $inner = "Naar nergens";
         foreach ($p as $key => $val) {
@@ -76,12 +75,11 @@ class htmlelements
                 $inner = $val;
                 break;
             default:
-                $attributes .= $key.'="'.urlencode($val).'" ';
+                $attributes .= " ".$key.'='.$val;
             }
         }
         $result = "";
-        /** $result .= "<!-- " . print_r($p, true) . " -->"; */
-        if ($href != "#" && !preg_match('/:\:\//', $href)) {
+        if ($href != "#" && !preg_match('/:\/\//', $href)) {
             $href = "http://" . $href;
         }
         $pattern = '/^([^?]*)[?]*(.*)/';
@@ -225,20 +223,19 @@ class htmlelements
         foreach ($args as $arg) {
             $parts = preg_split("/[=]/", $arg);
             if (in_array($parts[0], $keep)) {
-                array_push($newargs, $arg);
+                array_unshift($newargs, $arg);
             }
         }
         $newargs = join($newargs, "&");
-        $uri .= "?" . $newargs;
+        if (strlen($newargs)) $uri .= "?" . $newargs;
         return $_SERVER["SERVER_NAME"] . $uri;
-        genLogVar('server_name=', $_SERVER["SERVER_NAME"]);
     }
 
     // Add buttons to share on social media
     public function HEsocial($p, &$smarty)
     {
         $pageURL = genCurPageURL($p);
-        $result = ""; 
+        $result = "";
         // Facebook
         $result .= "<div class=\"fb-share-button\" ";
         $result .= "data-href=\"" . $pageURL . "\" ";

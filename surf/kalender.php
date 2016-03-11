@@ -341,6 +341,7 @@ class kalender
                 "currentStart" => $currentEventItem["start"])));
         genSmartyAssign("description", $description);
         genSmartyAssign("title", $title);
+        genSmartyAssign("image", $event["image"]);
         genSmartyAssign("currentEventItem", $currentEventItem);
         genSmartyAssign("rightColumns", array("INSTRUCTION", "TRAINING"));
         genSmartyAssign("data", $data);
