@@ -761,7 +761,10 @@ class table
             return $col;
         return $this->structure[$col]["label"];
     }
-    
+
+    /**
+     * perform a parsedown on the contents of any field of type textarea
+     */
     public function parseDown(&$row)
     {
         foreach ($row as $k => $v) {
@@ -771,6 +774,31 @@ class table
                 }
             }
         }
+    }
+
+    /**
+     * convert a record to text in a label: value format
+     * for fields with value matching any of their options the matching opotion is used
+     */
+    public function toText()
+    {
+        $nrArgs = func_num_args();
+        $result = "";
+        $data = ($nrArgs > 0 ? func_get_arg(0) : array());
+        $html = ($nrArgs > 1 ? func_get_arg(1) : false);
+        if (is_array($data)) {
+            foreach ($data as $key => $val) {
+                if (array_key_exists($key, $this->structure) && array_key_exists("options", $this->
+                    structure[$key]) && array_key_exists($val, $this->structure[$key]["options"])) {
+                    $val = $this->structure[$key]["options"][$val];
+                }
+                $result .= $key . ":" . $val . "\n";
+            }
+        }
+        if ($html) {
+            $result = genParseDownParse($result);
+        }
+        return $result;
     }
 }
 ?>

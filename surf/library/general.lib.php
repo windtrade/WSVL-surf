@@ -43,6 +43,14 @@ class general
         "description" => "",
         "site_name" => "",
         "image" => "");
+        
+    private static $categories = array(
+                self::NONE => "Kies een categorie",
+                self::GENERAL => "Algemeen",
+                self::TRAINING => "Training/Instructie",
+                self::INSTRUCTION => "Beginners instructie",
+                self::COMPETITION => "Wedstrijden",
+                self::TRIP => "Surftrips");
 
     const NONE = "0";
     const GENERAL = "1";
@@ -72,6 +80,11 @@ class general
         $this->htmlelements = new htmlelements();
         $this->teksten = new Teksten();
     }
+    
+    public static function getCategories()
+    {
+        return self::categories;
+    }
 
     public static function getCategoryDefinition()
     {
@@ -81,13 +94,7 @@ class general
             "role" => "public",
             "mandatory" => "0",
             "type" => "select",
-            "options" => array(
-                self::NONE => "Kies een categorie",
-                self::GENERAL => "Algemeen",
-                self::TRAINING => "Training/Instructie",
-                self::INSTRUCTION => "Beginners instructie",
-                self::COMPETITION => "Wedstrijden",
-                self::TRIP => "Surftrips"),
+            "options" => self::getCategories(),
             "protected" => "0",
             "check" => "");
     }
