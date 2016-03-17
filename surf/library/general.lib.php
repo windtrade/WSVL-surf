@@ -37,20 +37,6 @@ class general
     private $formStep = 0;
     private $action;
     public $teksten;
-    private $og = array(
-        "url" => "",
-        "title" => "",
-        "description" => "",
-        "site_name" => "",
-        "image" => "");
-        
-    private static $categories = array(
-                self::NONE => "Kies een categorie",
-                self::GENERAL => "Algemeen",
-                self::TRAINING => "Training/Instructie",
-                self::INSTRUCTION => "Beginners instructie",
-                self::COMPETITION => "Wedstrijden",
-                self::TRIP => "Surftrips");
 
     const NONE = "0";
     const GENERAL = "1";
@@ -58,7 +44,14 @@ class general
     const COMPETITION = "3";
     const TRIP = "4";
     const INSTRUCTION = "5";
-
+    
+    private $og = array(
+        "url" => "",
+        "title" => "",
+        "description" => "",
+        "site_name" => "",
+        "image" => "");
+        
     public function __construct()
     {
         global $our_timezone;
@@ -81,9 +74,18 @@ class general
         $this->teksten = new Teksten();
     }
     
+    /**
+     * Complex constants can only be defined in static functions like this one:
+     */
     public static function getCategories()
     {
-        return self::categories;
+        return array(
+                self::NONE => "Kies een categorie",
+                self::GENERAL => "Algemeen",
+                self::TRAINING => "Training/Instructie",
+                self::INSTRUCTION => "Beginners instructie",
+                self::COMPETITION => "Wedstrijden",
+                self::TRIP => "Surftrips");
     }
 
     public static function getCategoryDefinition()
