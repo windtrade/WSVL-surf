@@ -222,6 +222,9 @@ class table
                     $fieldOK = false;
                 } elseif ($struct["type"] == "tel") {
                     $fieldOK = $this->isValidTel($data[$key]);
+                    if (!$fieldOK) {
+                        $msg = $struct["msg"];
+                    }
                 } elseif ($fieldOK && array_key_exists("regexp", $struct) && $struct["regexp"] != "") {
                     $regex = "/^" . $struct["regexp"] . "\$/";
                     if (!preg_match($regex, $data[$key])) {
