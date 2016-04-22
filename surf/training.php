@@ -36,6 +36,8 @@ class trainingbeheer
         // $upcoming = (start, id)...
         // $upcoming = $this->calendar->getUpcoming(general::TRAINING);
         foreach ($upcoming as $start => $id) {
+            $names = genGetParticipantNames($this->eventRegister, $this->users, $id, $start);
+            /** TODO: remove block
             $participants = $this->eventRegister->getParticipants($id, $start);
             $names = array();
             foreach ($participants as $userId) {
@@ -43,6 +45,7 @@ class trainingbeheer
                 if ($user)
                     array_push($names, $user["roepnaam"] . " " . $user["voorvoegsel"] . " " . $user["naam"]);
             }
+            */
             array_push($result, array(
                 "id" => $id,
                 "start" => $start,

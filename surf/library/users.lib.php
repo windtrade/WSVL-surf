@@ -116,7 +116,7 @@ class users extends table
 	    "mandatory" => "0",
 	    "type" => "tel",
 	    "protected" => "0",
-	    "regexp" => "[ +()0-9]{10,15}",
+	    "regexp" => "[ -+()0-9]{10,15}",
 	    "msg" => "Gebruik alleen cijfers en haakjes()",
 	    "check" => ""),
 	"mobielnr" => array(
@@ -126,7 +126,7 @@ class users extends table
 	    "mandatory" => "0",
 	    "type" => "tel",
 	    "protected" => "0",
-	    "regexp" => "[ +()0-9]{10,15}",
+	    "regexp" => "[ -+()0-9]{10,15}",
 	    "msg" => "Gebruik alleen cijfers en haakjes()",
 	    "check" => ""),
 	"gebdatum" => array(

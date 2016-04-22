@@ -136,6 +136,16 @@ class table
         return $arr;
     }
 
+    private function isValidTel(&$val)
+    {
+        $newVal = preg_replace("/[*\-+()]/", "", $val);
+        $result = preg_match("/^[0-9]{10,15}/", $newVal);
+        if ($result) {
+            $val = $newVal;
+        }
+        return $result;
+    }
+
     /*
     * Accepts date-time formats
     * yyyy-mm-ddThhmm<whatever>
@@ -193,37 +203,39 @@ class table
                 continue;
             if ($struct["mandatory"] && (!array_key_exists($key, $data) || strlen($data[$key]) ==
                 0)) {
-                genSetError("Veld \"" . $struct["label"] . "\" is niet ingevuld");
-                $fieldOK = false;
-                if ($struct["mandatory"])
-                    continue;
-            }
-            $data[$key] = stripslashes($data[$key]);
-            if ($struct["type"] == "number" && !preg_match("/^\d+$/", $data[$key])) {
-                genSetError("Veld \"" . $struct["label"] . "\" is geen getal: \"" . $data[$key] .
-                    "\"");
-                $fieldOK = false;
-            } elseif ($struct["type"] == "datetime-local") {
-                if (!$this->fixDateTimeLocal($data[$key], $struct)) {
-                    genSetError("Veld \"" . $struct["label"] . "\" is niet correct ingevuld");
-                    $fieldOK = false;
-                }
-            } elseif ($struct["type"] == "checkbox" && ($data[$key] != $struct["checked"] &&
-            $data[$key] != $struct["default"])) {
-                genSetError("Veld \"" . $struct["label"] . "\" heeft een vreemde waarde: \"" . $data[$key] .
-                    "\"");
+                $msg = "niet ingevuld";
                 $fieldOK = false;
             }
-            if ($fieldOK && array_key_exists("regexp", $struct) && $struct["regexp"] != "") {
-                $regex = "/^" . $struct["regexp"] . "\$/";
-                if (!preg_match($regex, $data[$key])) {
+            if ($fieldOK) {
+                $data[$key] = stripslashes($data[$key]);
+                if ($struct["type"] == "number" && !preg_match("/^\d+$/", $data[$key])) {
+                    $msg = "geen getal: \"" . $data[$key] . "\"";
                     $fieldOK = false;
-                    if (array_key_exists("msg", $struct) && $struct["msg"] != "") {
-                        genSetError("Veld '" . $struct["label"] . "': " . $struct["msg"]);
-                    } else {
-                        genSetError("Veld '" . $struct["label"] . "' is niet correct ingevuld");
+                } elseif ($struct["type"] == "datetime-local") {
+                    if (!$this->fixDateTimeLocal($data[$key], $struct)) {
+                        $msg = "niet correct ingevuld";
+                        $fieldOK = false;
+                    }
+                } elseif ($struct["type"] == "checkbox" && ($data[$key] != $struct["checked"] &&
+                $data[$key] != $struct["default"])) {
+                    $msg = "vreemde waarde: \"" . $data[$key] . "\"";
+                    $fieldOK = false;
+                } elseif ($struct["type"] == "tel") {
+                    $fieldOK = $this->isValidTel($data[$key]);
+                } elseif ($fieldOK && array_key_exists("regexp", $struct) && $struct["regexp"] != "") {
+                    $regex = "/^" . $struct["regexp"] . "\$/";
+                    if (!preg_match($regex, $data[$key])) {
+                        $fieldOK = false;
+                        if (array_key_exists("msg", $struct) && $struct["msg"] != "") {
+                            $msg = $struct["msg"];
+                        } else {
+                            $msg = "is niet correct ingevuld";
+                        }
                     }
                 }
+            }
+            if (!$fieldOK) {
+                genSetError("Veld '" . $struct["label"] . "': " . $msg);
             }
             $ok = $ok && $fieldOK;
         }
