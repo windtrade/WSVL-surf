@@ -226,10 +226,9 @@ class htmlforms
         }
         $result .= "<input type='submit' ";
         genLogVAr(__FUNCTION__." myParams", $myParams);
-        $result .= "value='" . $myParams["value"] . "' ";
-        if (array_key_exists('onclick', $myParams))
+        foreach ($myParams as $key => $val)
         {
-            $result .= "onclick='" . $myParams['onclick'] . "' ";
+            $result .= $key . "='" . $val . "' ";
         }
         $result .= "/>";
         return $result;

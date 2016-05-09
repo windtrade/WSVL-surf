@@ -44,14 +44,14 @@ class general
     const COMPETITION = "3";
     const TRIP = "4";
     const INSTRUCTION = "5";
-    
+
     private $og = array(
         "url" => "",
         "title" => "",
         "description" => "",
         "site_name" => "",
         "image" => "");
-        
+
     public function __construct()
     {
         global $our_timezone;
@@ -73,19 +73,19 @@ class general
         $this->htmlelements = new htmlelements();
         $this->teksten = new Teksten();
     }
-    
+
     /**
      * Complex constants can only be defined in static functions like this one:
      */
     public static function getCategories()
     {
         return array(
-                self::NONE => "Kies een categorie",
-                self::GENERAL => "Algemeen",
-                self::TRAINING => "Training/Instructie",
-                self::INSTRUCTION => "Beginners instructie",
-                self::COMPETITION => "Wedstrijden",
-                self::TRIP => "Surftrips");
+            self::NONE => "Kies een categorie",
+            self::GENERAL => "Algemeen",
+            self::TRAINING => "Training/Instructie",
+            self::INSTRUCTION => "Beginners instructie",
+            self::COMPETITION => "Wedstrijden",
+            self::TRIP => "Surftrips");
     }
 
     public static function getCategoryDefinition()
@@ -264,8 +264,8 @@ class general
                 'HFreset'));
         $this->smarty->registerPlugin('function', 'HEelement', array($this->
                 htmlelements, 'HEelement'));
-        $this->smarty->registerPlugin('function', 'HEanchor', array($this->
-                htmlelements, 'HEanchor'));
+        $this->smarty->registerPlugin('function', 'HEanchor', array($this->htmlelements,
+                'HEanchor'));
         $this->smarty->registerPlugin('function', 'HEimage', array($this->htmlelements,
                 'HEimage'));
         $this->smarty->registerPlugin('function', 'HEtext', array($this->htmlelements,
@@ -536,8 +536,8 @@ function genTrace()
         $allArgs = func_get_args();
         $msg = "";
         while (count($args) > 1) {
-            $msg .= array_shift($args)."=";
-            $msg.= print_r(array_shift($args), true)."\n";
+            $msg .= array_shift($args) . "=";
+            $msg .= print_r(array_shift($args), true) . "\n";
         }
         $msg = print_r(array_shift($args), true);
         $general->trace($msg);
@@ -926,7 +926,7 @@ function genCurPageURL()
     }
     $elts = array();
     foreach ($params as $key => $val) {
-        array_push($elts, "$key=".urlencode(urldecode($val)));
+        array_push($elts, "$key=" . urlencode(urldecode($val)));
     }
     if (count($elts)) {
         $pageURL .= "?" . implode('&', $elts);
@@ -1021,7 +1021,7 @@ function genGetMenuItem($url, $tab)
     // genLogVar(__function__ . " result", $result);
     return $result;
 }
-/** 
+/**
  * If the page is not listed, you must be logged in for it
  */
 function genGetRequiredAuthority($url)
@@ -1110,10 +1110,35 @@ function genHTMLcomment()
     $args = func_get_args();
     while ($args) {
         $arg = array_shift($args);
-        $result .=  print_r($arg, true);
+        $result .= print_r($arg, true);
     }
     $result .= " -->";
     return $result;
+}
+/**
+ * return list of names of participants for event $id at $start
+ */
+function genGetParticipantNames($eventRegister, $users, $eventID, $start)
+{
+    $ok = true;
+    $names = array();
+    if (!is_object($eventRegister)) {
+        genSetError("eventRegister not defined");
+        $ok = false;
+    }
+    if (!is_object($users)) {
+        genSetError("users not defined");
+        $ok = false;
+    }
+    if ($ok) {
+        $participants = $eventRegister->getParticipants($eventID, $start);
+        foreach ($participants as $userId) {
+            $user = $users->get($userId);
+            if ($user)
+                array_push($names, $user["roepnaam"] . " " . $user["voorvoegsel"] . " " . $user["naam"]);
+        }
+    }
+    return $names;
 }
 
 /*
@@ -1138,6 +1163,6 @@ if (is_object($general)) {
 }
 
 if (count(array_keys($_POST))) {
-    genLogVar(__file__ . ":" . '$_POST', $_POST);
+    genLogVar("Loading ". __FILE__ . ":" . '$_POST', $_POST);
 }
 ?>

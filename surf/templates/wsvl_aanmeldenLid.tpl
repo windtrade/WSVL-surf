@@ -28,7 +28,7 @@ Het lidmaatschap wordt in principe jaarlijks stilzwijgend verlengd, tenzij het l
 <tr>{HFrecaptcha}</tr>
 {/if}
 <tr>
-<td>{HFsubmit value="AANMELDEN"}</td>
+<td>{HFsubmit name="command" value="AANMELDEN"}</td>
 <td>{HFreset value="WISSEN"}</td>
 </tr>
 </table>

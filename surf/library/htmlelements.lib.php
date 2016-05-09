@@ -210,7 +210,7 @@ class htmlelements
             } elseif ($key == "uri") {
                 $uri = $val;
             } else {
-                array_push($newargs, "$key=".urlencode($val));
+                array_push($newargs, "$key=".urlencode(urldecode($val))); 
             }
         }
         $parts = preg_split("/[?]/", $uri);

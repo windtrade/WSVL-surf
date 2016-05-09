@@ -6,8 +6,6 @@
  *
  * 07-10-2011 Huug Creation
  */
-
-session_start();
 #error_reporting(E_ALL);
 require_once "library/all_config.inc.php";
 require_once "general.lib.php";
@@ -182,12 +180,27 @@ function testMenu()
 	genSmartyDisplay("wvLeidschendam.tpl");
 	//genSmartyDisplay("wvLeidschendam menutest.tpl");
 }
-
+/**
 // testDataImport();
 // testDatabase();
 // testGenGetArrayFromArray();
 //testMakeWhereClause();
 //testAddJavascriptFile();
 // testUserRoles();
-testMenu();
+//testMenu();
+*/
 ?>
+<html>
+<head>
+</head>
+<body>
+<?php
+print("_GET=".print_r($_GET, true));
+?>
+<form action="<?php $_SERVER["PHP_SELF"]?>" method="get">
+veld 1:<input type="text" name="veld1"/>
+veld 2:<input type="text" name="veld2" />
+<input type="submit" value="ga"/>
+</form>
+</body>
+</html>

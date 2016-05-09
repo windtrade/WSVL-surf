@@ -138,8 +138,9 @@ class table
 
     private function isValidTel(&$val)
     {
-        $newVal = preg_replace("/[*\-+()]/", "", $val);
-        $result = preg_match("/^[0-9]{10,15}/", $newVal);
+        
+        $newVal = preg_replace("/[*\-+()\s]/", "", $val);
+        $result = $newVal == "" || preg_match("/^[0-9]{10,15}$/", $newVal);
         if ($result) {
             $val = $newVal;
         }
@@ -238,6 +239,7 @@ class table
                 }
             }
             if (!$fieldOK) {
+                genLogVar("Veld '" . $struct["label"], $msg);
                 genSetError("Veld '" . $struct["label"] . "': " . $msg);
             }
             $ok = $ok && $fieldOK;

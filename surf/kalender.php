@@ -176,7 +176,7 @@ class kalender
                 }
             }
         }
-        $userData = ($this->userSession->isLoggedIn()? genGetPageCache("users"): false);
+        $userData = ($this->userSession->isLoggedIn() ? genGetPageCache("users") : false);
         if ($userData === false)
             $userData = array();
         $result["form"]["users"] = $this->users->toForm($userData, $this->userSession, null,
@@ -337,12 +337,22 @@ class kalender
         if (strlen($description) >= 100) {
             $description = mb_substr($description, 0, 96) . " ...";
         }
+        $participants = genGetParticipantNames($this->eventRegister, $this->users, $currentEventItem["id"],
+            $currentEventItem["start"]);
+        $nrOfParticipants = count($participants);
+        if ($nrOfParticipants > 0) {
+            if (!$this->userSession->isLoggedIn()) {
+                $participants = array();
+            }
+            array_unshift($participants, $nrOfparticipants . " deelnemers");
+        }
         genSmartyAssign("url", genCurPageURL(array("currentEventId" => $currentEventItem["id"],
                 "currentStart" => $currentEventItem["start"])));
         genSmartyAssign("description", $description);
         genSmartyAssign("title", $title);
         genSmartyAssign("image", $event["image"]);
         genSmartyAssign("currentEventItem", $currentEventItem);
+        genSmartyAssign("participants", $participants);
         genSmartyAssign("rightColumns", array("INSTRUCTION", "TRAINING"));
         genSmartyAssign("data", $data);
         //genDumpVar('$data', $data);
