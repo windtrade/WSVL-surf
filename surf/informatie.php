@@ -36,7 +36,7 @@ class informatie
             $tab = $_REQUEST["tab"];
         }
         if (strtolower($tab) == "surfpool")
-            $nrs = array(22, 28);
+            $nrs = array(22, 28, 31);
         elseif (strtolower($tab) == "surfles") {
             $nrs = array(24, 28);
             $data = $this->getData(general::INSTRUCTION);
