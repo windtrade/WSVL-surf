@@ -41,6 +41,5 @@ Het lidmaatschap wordt in principe jaarlijks stilzwijgend verlengd, tenzij het l
 {/block}
 {block name="rechterDeel"}
 <div class="recentNieuwsKader">
-{HEtext textId="31"}
 </div>
 {/block}
