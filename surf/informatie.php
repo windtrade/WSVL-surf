@@ -36,14 +36,20 @@ class informatie
             $tab = $_REQUEST["tab"];
         }
         if (strtolower($tab) == "surfpool")
-            $nrs = array(22, 28);
+            $nrs = array(
+                22,
+                32,
+                28);
         elseif (strtolower($tab) == "surfles") {
             $nrs = array(24, 28);
             $data = $this->getData(general::INSTRUCTION);
         } elseif (strtolower($tab) == "wedstrijden") {
-            $nrs = array(7, 8, 9);
+            $nrs = array(
+                7,
+                8,
+                9);
         } elseif (strtolower($tab) == "tarieven") {
-            $nrs = array(31 );
+            $nrs = array(31);
         } elseif (strtolower($tab) == "gww") {
             $nrs = array(21, 28);
         }
@@ -76,15 +82,20 @@ class informatie
     */
     public function handleFormData()
     {
-        genLogVar('$_POST', $_POST);
-        if (!array_key_exists('fd', $_POST))
+        genLogVar(__FUNCTION__.' $_POST', $_POST);
+        if (!array_key_exists('fd', $_POST)){
             return false;
+        }
+        genLogVar(__FUNCTION__, __LINE__);
         $fd = $_POST["fd"];
-        if (!is_array($fd))
+        if (!is_array($fd)) {
+            genLogVar(__class__ . ":" . __function__ . ' not an array: $fd ', $fd);
             return false;
+        }
         if (genGetPageCache("NOROBOT") || general::reCAPTCHAverify()) {
             genSetPageCache("NOROBOT", "OK");
         } else {
+            genLogVar(__FUNCTION__.":".__LINE__."recaptchaVerify failed" );
             return false;
         }
         $hasRegistration = false;
@@ -94,16 +105,19 @@ class informatie
                 if (!$this->users->isValid($arr, $this->userColumns)) {
                     genLogVar(__function__ . " isValidUser", false);
                     return false;
-
-                } elseif ($group == "eventRegister") {
-                    // No need to validate registration,
-                    // false dates will be ignored
-                    $hasRegistration = true;
                 }
+            } elseif ($group == "eventRegister") {
+                // No need to validate registration,
+                // false dates will be ignored
+                $hasRegistration = true;
+                genLogVar(__function__ . "set hasRegistration:", "TRUE");
+            } else {
+                genLogVar(__FUNCTION__." unhandled \$fd[$group]", $fd[$group]);
             }
         }
         if (!$hasRegistration) {
-            genLogVar(__function__ . " hasRegistration:", $hasRegistration);
+            genLogVar(__function__ . " hasRegistration:", ($hasRegistration ? "TRUE" :
+                "FALSE"));
             genSetError("Geef één of meer data op");
             return false;
         }
@@ -111,6 +125,7 @@ class informatie
         $fd["user"]["wachtwoord"] = $this->users->randomPassword();
         $this->users->insert($fd["user"]);
         $fd["user"]["id"] = $this->users->getLastId();
+        genLogVar(__class__ . ":" . __function__ . '$fd["user"]', $fd["user"]);
         $this->register($fd);
         $starts = array();
         foreach ($fd["eventRegister"] as $event) {
