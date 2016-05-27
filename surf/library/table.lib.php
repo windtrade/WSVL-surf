@@ -420,19 +420,6 @@ class table
         return true;
     }
 
-    /*
-    private function makeQueryClause($whereArr)
-    {
-    if (0==count($whereArr)) return "";
-    $elt = array_shift($whereArr);
-    $retVal = "WHERE ".$elt["col"].$elt["oper"].$elt["val"];
-    while ($elt = array_shift($whereArr)) {
-    $retval .= "AND "..$elt["col"].$elt["oper"].$elt["val"];
-    }
-    return $retVal;
-    }
-    */
-
     /*!
     * Read according to optional query ordered according to order argument
     *
