@@ -454,38 +454,35 @@ class table
     public function readQuery()
     {
         if (!genDBConnected()) {
-            genSetError(__file__ . ":" . __function__ . " Geen database connectie");
+            genLogVar(__CLASS__ . ":" . __function__, " Geen database connectie");
             return false;
         }
         $nrArgs = func_num_args();
         $allArgs = func_get_args();
         if ($nrArgs > 4) {
-            genSetError(__file__ . ":" . __function__ . "wrong number of arguments ($nrArgs)" .
-                "expecting 0, 1 or 2");
+            genSetError(__CLASS__ . ":" . __function__, "wrong number of arguments ($nrArgs)" .
+                "expecting [whereArr [, orderArr [, columnArr ]]]");
             return false;
         }
-        if ($nrArgs == 0) {
             $whereArr = array();
-        } else {
+            $orderArr = array();
+            $cols = "*";
+            $distinct = "";
+
+        if ($nrArgs >= 1) {
             $whereArr = array_shift($allArgs);
         }
         if ($nrArgs >= 2) {
             $orderArr = array_shift($allArgs);
-        } else {
-            $orderArr = array();
         }
         if ($nrArgs >= 3) {
             $cols = join(",", array_shift($allArgs));
-        } else {
-            $cols = "*";
         }
         if ($nrArgs >= 4) {
             $distinct = array_shift($allArgs);
-        } else {
-            $distinct = "";
         }
         if (!is_array($whereArr)) {
-            genLogVar(__function__ . ":" . __line__ . ": arg 1 is not an array of arrays:",
+            genLogVar(__CLASS__.":".__function__ . ":" . __line__ . ": arg 1 is not an array of arrays:",
                 $whereArr);
             return false;
         }
@@ -494,17 +491,18 @@ class table
             if (!is_array($elt)) {
                 genLogVar(__function__ . ":" . __line__ . ": arg 1 is not an array of arrays:",
                     $whereArr);
+                genLogVar(__CLASS__.":".__FUNCTION__.": faulty element:", $elt);
                 return false;
             }
             if (array_key_exists("col", $elt)) {
                 if (is_int($elt["col"]) || !array_key_exists($elt["col"], $this->structure)) {
-                    genLogVAr(__function__ . ": invalid column name: '" . $elt["col"] . "'");
-                    logvar(__function__ . "whereArr=", $whereArr);
-                    logvar(__function__ . "colums are ", $this->structure);
+                    genLogVAr(__CLASS__.":".__FUNCTION__.": invalid column name: '" . $elt["col"] . "'");
+                    GenLogVar(__CLASS__.":".__function__ . "whereArr=", $whereArr);
+                    GenLogVar(__CLASS__.":".__function__ . "colums are ", $this->structure);
                     return false;
                 }
             } else {
-                genLogVAr(__function__ . "invalid whereArr:", $whereArr);
+                genLogVAr(__CLASS__.__function__ . "invalid whereArr (missing column name):", $whereArr);
                 break;
             }
         }
