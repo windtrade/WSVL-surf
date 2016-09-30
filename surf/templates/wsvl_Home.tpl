@@ -44,7 +44,7 @@
 		{foreach from=$newsItems item=newsItem}
 		    {if $i < 2}
 			<div class="recentNieuwsBericht">
-			<span class="nieuwsTitel">{$newsItem.news_title}</span>
+			<h2 class="nieuwsTitel">{$newsItem.news_title}</h2>
 			<p>{$newsItem.news_short}</p>
 			<div class="miniLeesverder">
 			    <a href="news_leesverder.php?news_id={$newsItem.news_id}">
