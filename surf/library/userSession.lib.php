@@ -15,107 +15,108 @@ class userSession
 
     private function doLogin($reqData)
     {
+        $fName = __CLASS__ . ":" . __FUNCTION__;
         $ok = true;
         if (!array_key_exists('login', $reqData)) {
+            $login = "";
             genSetError("Geen gebruikersnaam ontvangen");
             $ok = false;
-        } else {
-            $login = trim($reqData['login']);
-            if (!strlen($login)) {
-                genSetError("Gebruikersnaam is leeg");
-                $ok = false;
-            }
         }
         if (!array_key_exists('password', $reqData)) {
             genSetError("Geen wachtwoord ontvangen");
             $ok = false;
-        } else {
-            $password = trim($reqData['password']);
-            if (!strlen($password)) {
-                genSetError("Wachtwoord is leeg");
-                $ok = false;
-            }
         }
-        if (!$ok)
-            return $ok;
-        /*
-        * $login_key = "nick";
-        * if (strstr($login, "@"))
-        * $login_key = "email";
-        * $query = array($login_key => $login, );
-        */
+        if (!$ok) return false;
+        $login = trim($reqData['login']);
+        if (!strlen($login)) {
+            genSetError("Gebruikersnaam is leeg");
+            $ok = false;
+        }
+        $password = trim($reqData['password']);
+        if (!strlen($password)) {
+            genSetError("Wachtwoord is leeg");
+            $ok = false;
+        }
+
+        if (!$ok) return $ok;
         $usrCount = 0;
+        $lastUser = false;
         foreach (array("nick", "email") as $login_key) {
-            $query = array($login_key => $login);
-            genLogVar(__file__ . ":" . '$query', $query);
-            $result = $this->users->readSelect($query);
-            if ($result) {
-                genLogVar(__file__ . ":" . "query result rows", mysql_num_rows($result));
-            } else {
-                genLogVar(__file__ . ":" . "query result", $result);
-            }
-            while ($result && ($row = $this->users->fetch_assoc($result))) {
-                genLogVar(__file__ . ":" . "**** GELEZEN row", implode(',', array_values($row)));
+            $sth = $this->users->readSelect(array($login_key => $login));
+            $rows = $this->users->fetch_assoc_all($sth);
+            genLogVar($fName . ": " . "query result rows", count($rows));
+            while ($row = array_shift($rows)) {
+                genLogVar($fName . ":" . "**** GELEZEN row", implode(',', array_values($row)));
                 if (strlen($row["wachtwoord"])) {
-                    genLogVar(__file__ . ":" . "Test wachtwoord", __line__);
+                    genLogVar($fName . ":" . "Test wachtwoord", __line__);
                     if (password_verify($password, $row["wachtwoord"])) {
-                        genLogVar(__file__ . ":" . "wachtwoord oke", __line__);
+                        genLogVar($fName . ":" . "wachtwoord oke", __line__);
                         $usrCount++;
                     }
                 } else {
-                    genLogVar(__file__ . ":" . "opgeslagen wachtwoord leeg", __line__);
+                    genLogVar($fName . ":" . "opgeslagen wachtwoord leeg", __line__);
                     $usrCount++;
                 }
                 $lastUser = $row;
             }
-            if (!$result || $usrCount != 1) {
-                genLogVar(__file__ . ":" . '$usrCount', $usrCount);
-                genSetError("Inloggen met $login mislukt");
-                return false;
-            }
         }
-        /** Welcome message */
+        if ($usrCount != 1) {
+            genLogVar($fName . ":" . 'For ' . $login . ' found $usrCount', $usrCount);
+            genSetError("Inloggen met $login mislukt");
+            return false;
+        }
+
+        $this->setWelcome($lastUser);
+        $_SESSION['logedIn'] = 1;
+        $this->resetSessionData($lastUser);
+    }
+
+    public function resetSessionData($user)
+    {
+        if (array_key_exists('user', $_SESSION) &&
+            array_key_exists('user', $_SESSION['user']) &&
+            ($user["id"] != $_SESSION['user']['user']["id"])) {
+            unset($_SESSION['user']);
+        }
+        $_SESSION["loggedIn"] = 1;
+        $_SESSION['user']['user'] = $user;
+
+        $now = new DateTime();
+        $_SESSION["user"]["lastActive"] = $now->format("U");
+        $_SESSION["user"]["lastAddress"] = $_SERVER["REMOTE_ADDR"];
+        $roles = $this->user_roles->getRoles($_SESSION['user']['user']["id"]);
+        $_SESSION['user']['user_roles'] = array("public" => "1");
+        while ($role = array_shift($roles)) {
+            $_SESSION['user']['user_roles'][$role] = "1";
+        }
+    }
+
+    public function setWelcome($lastUser)
+    {
+        if (!is_array($lastUser)) $lastUser = array();
         $info = "Je bent nu aangemeld, ";
         $target = "beste gebruiker";
         foreach (array(
-            "roepnaam",
-            "nick",
-            "naam") as $x) {
-            if ($lastUser[$x] != "") {
+                     "roepnaam",
+                     "nick",
+                     "naam") as $x) {
+            if (
+                array_key_exists($x, $lastUser) &&
+                $lastUser[$x] != "") {
                 $target = $lastUser[$x];
                 break;
             }
         }
         $info .= $target;
         genSetInfo($info);
-
-        /** login with previously logged in user: keep session data
-         */
-        if ($lastUser["id"] != $_SESSION["user"]["id"]) {
-            unset($_SESSION["user"]);
-        }
-        $_SESSION["loggedIn"] = 1;
-        $_SESSION["user"] = $lastUser;
-
-        $now = new DateTime();
-        $_SESSION["user"]["lastActive"] = $now->format("U");
-        $_SESSION["user"]["lastAddress"] = $_SERVER["REMOTE_ADDR"];
-        $result = $this->user_roles->readSelect(array("user_id" => $_SESSION["user"]["id"]));
-        $_SESSION["user"]["user_roles"] = array("public" => "1");
-        while ($result && $user_role = mysql_fetch_assoc($result)) {
-            $_SESSION["user"]["user_roles"][$user_role["role"]] = "1";
-        }
-        return $ok;
     }
 
     private function logout($quiet)
     {
-        if ($_SESSION["loggedIn"]) {
-            $_SESSION["loggedIn"] = 0;
-            if (!$quiet)
-                genSetInfo("U bent nu afgemeld");
-        }
-    }
+        $_SESSION["loggedIn"] = 0;
+        if (!$quiet)
+            genSetInfo("U bent nu afgemeld");
+    }    
 
     private function testSession()
     {
@@ -139,31 +140,37 @@ class userSession
             $this->logout(false);
         }
         $_SESSION["user"]["lastActive"] = $nowTS;
-        $_SESSION["user"]["lastAddress"] = $_SERVER["REMOTE_ADDR"];
+        $lastAddress = "1.2.3.4";
+        if (array_key_exists("REMOTE_ADDR",$_SERVER)) {
+            $lastAddress = $_SERVER["REMOTE_ADDR"];
+        }
+        $_SESSION["user"]["lastAddress"] = $lastAddress;
     }
 
     // process a POST or GET login request;
     public function login()
     {
-        $this->doLogin($_REQUEST);
+        return $this->doLogin($_REQUEST);
     }
 
     /** Handle login JSON request */
     public function JSONlogin()
     {
+        $fName = __CLASS__.":".__FUNCTION__.":";
+        $response = array();
         if (array_key_exists("JSON", $_GET)) {
             $json = $_GET;
             if (array_key_exists("action", $json) && $json["action"] == "JSONlogin") {
-                genLogVar(__file__ . ":" . "Nu hier", __line__);
+                genLogVar($fName . ":" . "Nu hier", __line__);
                 $response["status"] = $this->doLogin($json);
-                genLogVar(__file__ . ":" . "response", $response);
+                genLogVar($fName . ":" . "response", $response);
             } else {
                 genSetError("geen login ontvangen");
-                genLogVar(__file__ . ":" . "json", $json);
+                genLogVar($fName . ":" . "missing JSON:", join(",", array_keys($json)));
             }
         } else {
             GenSetError("Ongelukkig formaat opdracht, sorry");
-            genLogVar(__file__ . ":" . "json", $json);
+            genLogVar($fName . ":" . "Missing \$_GET: ", join(",", array_keys($_GET)));
         }
         genJSONResponse($response);
     }
@@ -190,22 +197,22 @@ class userSession
 
     public function hasRole($role)
     {
-        return (isset($_SESSION["loggedIn"]) && isset($_SESSION["user"]["user_roles"]) &&
-            isset($_SESSION["user"]["user_roles"]) && array_key_exists($role, $_SESSION["user"]["user_roles"]));
+        return (isset($_SESSION["loggedIn"]) && isset($_SESSION['user']['user_roles']) &&
+            isset($_SESSION['user']['user_roles']) && array_key_exists($role, $_SESSION['user']['user_roles']));
     }
 
     public function getSessionData($name)
     {
-        if (array_key_exists("user", $_SESSION) && array_key_exists("data", $_SESSION["user"]) &&
-            array_key_exists($name, $_SESSION["user"]["data"])) {
-            return $_SESSION["user"]["data"][$name];
+        if (array_key_exists("user", $_SESSION) && array_key_exists("data", $_SESSION['user']) &&
+            array_key_exists($name, $_SESSION['user']["data"])) {
+            return $_SESSION['user']["data"][$name];
         }
         return false;
     }
 
     public function setSessionData($name, $data)
     {
-        $_SESSION["user"]["data"][$name] = $data;
+        $_SESSION['user']["data"][$name] = $data;
     }
 
     public function isLoggedIn()
@@ -222,16 +229,20 @@ class userSession
 
     public function isCurrentUser($id)
     {
-        if (array_key_exists("user", $_SESSION) && array_key_exists("id", $_SESSION["user"])) {
+        if (array_key_exists("user", $_SESSION) && array_key_exists("id", $_SESSION['user'])) {
             return ($id == $this->getUserId());
         }
         return false;
     }
 
+    /**
+     * @param $attr requested attribute 
+     * @return mixed false on error
+     */
     public function getUserAttr($attr)
     {
-        if (array_key_exists("user", $_SESSION) && array_key_exists($attr, $_SESSION["user"])) {
-            return $_SESSION["user"][$attr];
+        if (array_key_exists("user", $_SESSION) && array_key_exists($attr, $_SESSION['user']['user'])) {
+            return $_SESSION['user']['user'][$attr];
         }
         return false;
     }
@@ -239,6 +250,12 @@ class userSession
     public function getUserId()
     {
         return $this->getUserAttr("id");
+    }
+    
+    public function redirectIfNotLogged()
+    {
+        if ($this->isLoggedIn()) return;
+        header("Location: ", $_SERVER["HTTP_HOST"].":".$_SERVER["HTTP_PORT"]);
     }
 
     public function __construct()

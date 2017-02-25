@@ -134,112 +134,102 @@ class kalenderbeheer
 
     private function saveEvent(&$data)
     {
-	$dt = new DateTime();
-	$data["event"]["timestamp"] = $dt->format("Y-m-d H:i:s");
-	$data["event"]["author_id"] = $this->userSession->getUserId();
-	$data["image"]["userId"] = $this->userSession->getUserId();
-	if (array_key_exists( "id", $data["event"]) && 
-	    $data["event"]["id"] != $this->event->getDefault("id")) {
+        $dt = new DateTime();
+        $data["event"]["timestamp"] = $dt->format("Y-m-d H:i:s");
+        $data["event"]["author_id"] = $this->userSession->getUserId();
+        $data["image"]["userId"] = $this->userSession->getUserId();
+        if (array_key_exists( "id", $data["event"]) &&
+            $data["event"]["id"] != $this->event->getDefault("id")) {
 
-	    if (!$this->event->update(
-		$this->userSession->getSessionData("event"),
-		$data["event"])) return false;
-	    $result = $this->calendar->deleteMany(array("id" => $data["event"]["id"]));
-	    if (!$result) return false;
-	} else {
-	    $result = $this->event->insert($data["event"]);
-	    if (!$result) return false;
-	    $data["event"]["id"] = $this->event->getLastId();
-	}
-	$data["image"]["eventId"] = $data["event"]["id"];
-	$data["image"]["category"] = $data["event"]["category"];
-	$data["image"]["fileField"] = "fd__image__img";
-	if ($this->image->insert($data["image"])) {
-	    $oldEvent = $data["event"];
-	    $data["event"]["image"] = $data["image"]["id"] = 
-		$this->image->getLastId();
-	    $this->event->update($oldEvent, $data["event"]);
-	}
-	unset($data["image"]["fileField"]);
-	foreach ($data["calendar"] as $calendar) {
-	    $calendar["id"] = $data["event"]["id"];
-	    $calendar["category"] = $data["event"]["category"];
-	    $result = $this->calendar->insert($calendar);
-	    if (!$result) return false;
-	}
-	$result = $this->event->readSelect(array("id" => $data["event"]["id"]));
-	if ($result) {
-	    $new = $this->event->fetch_assoc($result);
-	    $data["event"] = $new;
-	} else {
-	    genSetError("Nix gelezen");
-	}
+            if (!$this->event->update(
+                $this->userSession->getSessionData("event"),
+                $data["event"])) return false;
+            $result = $this->calendar->deleteMany(array("id" => $data["event"]["id"]));
+            if (!$result) return false;
+        } else {
+            $result = $this->event->insert($data["event"]);
+            if (!$result) return false;
+            $data["event"]["id"] = $this->event->getLastId();
+        }
+        $data["image"]["eventId"] = $data["event"]["id"];
+        $data["image"]["category"] = $data["event"]["category"];
+        $data["image"]["fileField"] = "fd__image__img";
+        $newImageData = $this->image->insert($data["image"]);
+        if ($newImageData) {
+            $oldEvent = $data["event"];
+            $data["image"] = $newImageData;
+            $data["event"]["image"] = $data["image"]["id"] =
+                $this->image->getLastId();
+            $this->event->update($oldEvent, $data["event"]);
+        }
+        unset($data["image"]["fileField"]);
+        foreach ($data["calendar"] as $calendar) {
+            $calendar["id"] = $data["event"]["id"];
+            $calendar["category"] = $data["event"]["category"];
+            $result = $this->calendar->insert($calendar);
+            if (!$result) return false;
+        }
+        $this->event->initQuery();
+        $this->event->addTerm("id", '=', $data["event"]["id"]);
+        $result = $this->event->readQuery();
+        if ($result) {
+            $new = $this->event->fetch_assoc($result);
+            $data["event"] = $new;
+        } else {
+            genSetError("Nix gelezen");
+        }
     }
 
-    private function getEventList($start)
+    public function getEventList($start)
     {
-	$result = array();
-	if ($start >0) {
-	    $whereArray = array(
-		array(
-		    "col" => "id",
-		    "oper" => "<",
-		    "val" => $start
-		)
-	    );
-	} else {
-	    $whereArray = array();
-	}
-	$orderArray = array(
-	    "id" =>  "DESC"
-	);
-	$query = $this->event->readQuery($whereArray, $orderArray);
-	if ($query) {
-	    $i = 0;
-	    while (($i < 20) && ($row = $this->event->fetch_assoc($query))) {
-		array_push($result, $row);
-		$i++;
-	    }
-	}
-	return $result;
-    }
-    
-    private function getEvent(&$fd)
-    {
-	if (!array_key_exists("event", $fd) ||
-	    !array_key_exists("id", $fd["event"])) {
-		genSetError(__FUNCTION__.": missing event id");
-		return false;
-	    }
-	$query = $this->event->readQuery(array(array(
-	    'col' => 'id',
-	    'oper' => '=',
-	    'val' => $fd["event"]["id"])));
-	if ($query) {
-	    $nrRows= mySql_num_rows($query);
-	    if ($nrRows == 1) {
-		$fd["event"] = $this->event->fetch_assoc($query);
-	    } else if ($nrRows == 0) {
-		genSetError(__FUNCTION__.": Event ".$fd["event"]["id"]." niet gevonden");
-		return false;
-	    } else {
-		genSetError(__FUNCTION__.": Event ".$fd["event"]["id"]." $nrRows x gevonden");
-		return false;
-	    }
-	}
-	$fd["calendar"] = array();
-	$query = $this->calendar->readQuery(array(array(
-	    'col' => 'id',
-	    'oper' => '=',
-	    'val' => $fd["event"]["id"])));
-	if ($query) {
-	    while ($row = $this->calendar->fetch_assoc($query)) {
-		array_push($fd["calendar"], $row);
-	    }
-	}
-	return true;
+        $result = array();
+        $this->event->initQuery();
+        if ($start >0) {
+            $this->event->addTerm("id", "<", $start);
+        } else {
+            $whereArray = array();
+        }
+        $this->event->addOrderTerm("id", "DESC");
+        $query = $this->event->readQuery();
+        if ($query) {
+            $i = 0;
+            $result = $this->event->fetch_assoc_all($query);
+        }
+        return $result;
     }
 
+    /**
+     * @param $fd associate array [event][id] = key
+     * @return bool true: successful
+     */
+    private function getEvent(&$fd) {
+        if (!array_key_exists("event", $fd) ||
+            !array_key_exists("id", $fd["event"])) {
+            genSetError(__FUNCTION__.": missing event id");
+            return false;
+        }
+        $whereArr = array();
+        $this->addTerm($whereArr, 'id', '=', $fd['event']['id']);
+        $query = $this->event->readQuery($whereArr);
+        if (!$query) {
+            return false;
+        }
+        $events= $this->event->fetch_assoc($query);
+        $nrRows = count($events);
+        if ($nrRows == 1) {
+            $fd["event"] = $events[0];
+        } else {
+            genSetError(__FUNCTION__.": Event ".$fd["event"]["id"]." $nrRows x gevonden");
+            return false;
+        }
+        // where clause does not change :-)
+        $query = $this->calendar->readQuery($whereArr);
+        if (!$query) {
+            return false;
+        }
+        $fd["calendar"] =  $this->calendar->fetch_assoc($query);
+        return true;
+    }
 	
     public function __construct()
     {

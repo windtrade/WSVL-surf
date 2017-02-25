@@ -5,8 +5,7 @@
  *
  * 03-01-2014 : Huug Peters : Creation
  */
-error_reporting(E_ALL);
-require_once "library/all_config.inc.php";
+require_once "../../all_config.inc.php";
 require_once "general.lib.php";
 require_once "event.lib.php";
 require_once "eventregister.lib.php";

@@ -94,10 +94,7 @@ class image extends table
 
     public function get($id)
     {
-        return parent::get(array(array(
-                "col" => "id",
-                "oper" => "=",
-                "val" => $id)));
+        return parent::getOne(array("id" => $id));
     }
 
     /** return outer dimensions of any image (large/small/thumb) */
@@ -151,6 +148,7 @@ class image extends table
                 break;
         }
         genSetError("Bestandstype wordt niet ondersteund");
+        return false;
     }
     private function imageAnything($image, $filename, $fileType)
     {
@@ -158,21 +156,25 @@ class image extends table
             genSetError("Image type not supported by PHP");
             return false;
         }
+        $result = false;
         switch ($fileType) {
             case IMG_GIF:
-                return imagegif($image, $filename);
+                $result =  imagegif($image, $filename);
                 break;
             case IMG_JPG:
-                return imagejpeg($image, $filename);
+                $result =  imagejpeg($image, $filename);
                 break;
             case IMG_PNG:
-                return imagepng($image, $filename);
+                $result =  imagepng($image, $filename);
                 break;
             case IMG_WBMP:
-                return imagewbmp($image, $filename);
+                $result =  imagewbmp($image, $filename);
+                break;
+            default:
+                genSetError("Bestandstype wordt niet ondersteund");
                 break;
         }
-        genSetError("Bestandstype wordt niet ondersteund");
+        return $result;
     }
 
     public static function fileFromId($id)
@@ -182,16 +184,20 @@ class image extends table
         return sprintf("%06d", $id);
     }
 
-    private static function urlFromFile($fileName)
+    public static function urlFromFile($fileName)
     {
-        $cnt = sscanf($fileName, "%d", $id);
+        sscanf($fileName, "%d", $id);
         $result = IMAGE_ROOT_URL . image::relativeDirFromId($id) . $fileName;
         return $result;
 
     }
 
-    /** return the the sizes for all sizes  */
-    private static function getNewSizes($old, &$o)
+    /**
+     * @param $old image file
+     * @param (out) $original['w']  $original['h'] $original['imgType']
+     * @return array by size (large/small/thumb) new width and height
+     */
+    public static function getNewSizes($old, &$o)
     {
         list($o["w"], $o["h"], $o["imgType"]) = getImageSize($old);
         $dim = image::dimensions();
@@ -211,21 +217,31 @@ class image extends table
         return $nS;
     }
 
-    private static function getOldUrl($id, $size)
+    public static function getOldUrl($id, $size)
     {
+        if (!is_numeric($id)) {
+            if (preg_match('/^http/', $id)) return $id;
+            genLogVar(__FUNCTION__." id", $id);
+            return "";
+        }
         $imgDir = IMAGE_FILE_ROOT . "/news/";
         $imgUrlDir = IMAGE_ROOT_URL . "/news/";
         if (file_exists($imgDir) && is_dir($imgDir)) {
             $dir = dir($imgDir);
             $origFile = false;
-            $wamtedFile = false;
-            while (false !== ($entry = $dir->read())) {
-                if (preg_match("/^0*$id\.[^.]*$/", $entry)) {
-                    $origFile = $entry;
-                } else
-                    if (preg_match("/^0*$id" . "_?" . $size . "\.[^.]*$/i", $entry)) {
-                        return $imgUrlDir . $entry;
-                    }
+            $origRegex = '/^0*"'.$id.'\\.[^.]*$/';
+            $imgRegex = '/^0*'.$id . "_?" . $size . '\\.[^.]*$/i';
+            try {
+                while (false !== ($entry = $dir->read())) {
+                    if (preg_match($origRegex, $entry)) {
+                        $origFile = $entry;
+                    } else
+                        if (preg_match($imgRegex, $entry)) {
+                            return $imgUrlDir . $entry;
+                        }
+                }
+            } catch (Exception $e){
+                genLogVar(__FUNCTION__."error", $e.message);
             }
             if ($origFile !== false) {
                 $wantedFile = preg_replace('/^(.*)(\.[^.*])/', '$1_' . $size . '$2', $origFile);
@@ -257,17 +273,24 @@ class image extends table
                 }
             }
         }
+        return false;
     }
+
+    /**
+     * @param $id: id of requested image
+     * @param $size: valid size (large/small/thumb)
+     * @return bool|string false or url for requested image of for file not found
+     */
     public static function getUrl($id, $size)
     {
         $imgDir = image::dirFromId($id);
         $imgFileBase = image::fileFromId($id);
-        if (strlen($size) > 0)
+        if (isset($size) && strlen($size) > 0)
             $imgFileBase .= "_$size";
         if (file_exists($imgDir) && is_dir($imgDir)) {
             $dir = dir($imgDir);
             while (false !== ($entry = $dir->read())) {
-                if (preg_match("/^$imgFileBase\.[^.]*$/", $entry)) {
+                if (preg_match('/^'.$imgFileBase.'\.[^.]*$/', $entry)) {
                     return image::urlFromFile($entry);
                 }
             }
@@ -278,43 +301,45 @@ class image extends table
         return image::imageNotFound($size);
     }
 
-    public function imageNotFound($size)
+    public static function imageNotFound($size)
     {
-        $notFound = "imgNotFound" . (strlen($size) > 0 ? "_$size" : "") . "png";
+        $notFound = "imgNotFound" . (strlen($size) > 0 ? "_$size" : "") . ".png";
         return IMAGE_ROOT_URL . $notFound;
     }
 
-    private static function dirFromId($id)
+    public static function dirFromId($id)
     {
         return IMAGE_FILE_ROOT . image::relativeDirFromId($id);
     }
-    private static function relativeDirFromId($id)
+    public static function relativeDirFromId($id)
     {
-        $dirname = preg_replace("/(\d\d)/", 'img$1/', image::fileFromId($id));
+        $dirname = preg_replace('/(\d\d)/', 'img$1/', image::fileFromId($id));
         return $dirname;
     }
 
-    /*
-    * insert the image description in the table,
-    * save the uploaded file, make small and a thumbnail copy
-    * the name of the field name of the uploaded image is part of $new
-    */
-    public function insert(&$new)
+    /**
+     * insert the image description in the table,
+     * save the uploaded file, make small and a thumbnail copy
+     * the name of the field name of the uploaded image is part of $new
+     *
+     * @param $arr
+     * @return bool
+     */
+    public function insert($arr)
     {
         $result = true;
-        $tmp = $this->getFileAttr($new["fileField"], 'tmp_name');
-        unset($new["fileField"]);
-        if ($tmp === false)
-            return false;
-        if (strlen($tmp) == 0)
-            return false;
+        $ext="";
+        $tmp = $this->getFileAttr($arr["fileField"], 'tmp_name');
+        unset($arr["fileField"]);
+        if ($tmp === false || strlen($tmp) == 0) return false;
+        $sizes = $this->getNewSizes($tmp, $orig);
         $dt = new DateTime();
-        $new["timestamp"] = $dt->format("Y-m-d H:i:s");
-        parent::insert($new);
-        $new["id"] = $this->getLastId();
-        $dest = $this->fileFromId($new["id"]);
+        $arr["timestamp"] = $dt->format("Y-m-d H:i:s");
+        parent::insert($arr);
+        $arr["id"] = $this->getLastId();
+        $dest = $this->fileFromId($arr["id"]);
 
-        $dirname = $this->dirFromId($new["id"]);
+        $dirname = $this->dirFromId($arr["id"]);
         if (file_exists($dirname)) {
             if (!is_dir($dirname)) {
                 $error = "No directory for image $dest";
@@ -333,7 +358,6 @@ class image extends table
             umask($old_umask);
         }
         if ($result) {
-            $sizes = $this->getNewSizes($tmp, $orig);
             $imOrig = $this->imageFromAnything($tmp, $orig["imgType"]);
             $ext = image_type_to_extension($orig["imgType"]);
             $result = ($imOrig != false);
@@ -341,11 +365,16 @@ class image extends table
         if ($result) {
             foreach ($sizes as $size => $dim) {
                 $newImg = imagecreatetruecolor($dim["w"], $dim["h"]);
-                $result = imagecopyresampled($newImg, $imOrig, 0, 0, 0, 0, $dim["w"], $dim["h"], $orig["w"], $orig["h"]);
-                $result = $this->imageAnything($newImg, $dirname . $dest . "_".$size . $ext, $orig["imgType"]);
+                if (isset($imOrig)) {
+                    $result = imagecopyresampled($newImg, $imOrig, 0, 0, 0, 0, $dim["w"], $dim["h"], $orig["w"], $orig["h"]);
+
+                    if ($result) {
+                        $result = $this->imageAnything($newImg, $dirname . $dest . "_" . $size . $ext, $orig["imgType"]);
+                    }
+                }
             }
         }
-        return $result;
+        return ($result? $arr: $result);
     }
 }
-?>
+

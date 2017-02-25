@@ -28,9 +28,11 @@ Vul onderstaand formulier in om je op te geven voor de starterscursus:
 {foreach $group as $item}
 {$checked = ""}
 {if $item.checked != 0}{$checked="checked"}{/if}
+{$disabled = ""}
+{if $item.disabled != 0}{$disabled="disabled"}{/if}
 <tr>
 <td>{$item.label}</td>
-<td><input type="checkbox" name="{$item.name}" {$checked}/></td>
+<td><input type="checkbox" name="{$item.name}" {$checked} {$disabled} /></td>
 </tr>
 {/foreach}
 {/foreach}

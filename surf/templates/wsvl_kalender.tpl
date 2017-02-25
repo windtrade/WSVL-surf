@@ -6,6 +6,11 @@
 {extends file="wsvl_personal.tpl"}
 {block name="title"}WV Leidschendam Kalender{/block}
 {block name="topdeel"}
+{if count($participants)}
+<div class="leftFloat30pct">
+</div>
+<div class="rightFloat70pct">
+{/if}
 {if (isset($currentEventItem))}
     {$item = $data.event[$currentEventItem.id]}
 {else}
@@ -64,6 +69,16 @@
 </tr>
 </table>
 </form>
+<div>
+{* shorthand *} {$cEI = $currentEventItem}
+{$href={HEbuildURI uri="/nieuwsbeheer.php" 
+news_event_id="{$currentEventItem.id}" 
+news_event_start="{$currentEventItem.start}"
+news_image="{$item.image}"
+news_title="{$item.title} {$currentEventItem.name}"}}
+{HEanchor href="{$href}" inner="schrijf een bericht"}
+{if count($participants)}</div>{/if}
+</div>
 <div>{HEsocial currentEventId="{$currentEventItem.id}" currentStart="{$currentEventItem.start}"}</div>
 {/block}
 {block name="linkerDeel"}
@@ -90,7 +105,7 @@
 </td>
 <td><div class="calendarH2">{$item.date[2]}</div></td>
 <td>
-{assign var=href value={HEbuildURI keep="tab" currentEventId="{$item.id}" currentStart={$item.start}}}
+{$href={HEbuildURI keep="tab" currentEventId="{$item.id}" currentStart="{$item.start}"}}
 {HEanchor href={$href} inner="{$item.title} {$item.name}"}
 {if $item.location == "" and $item.url != ""}
 {$item.location="info"}
@@ -103,6 +118,7 @@
 {$item.location}
 {/if}
 {/if}
+<br /> 
 </td>
 </tr>
 {/foreach}

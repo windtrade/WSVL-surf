@@ -100,42 +100,34 @@ class contact extends table
 	$this->structure["category"] = general::getCategoryDefinition();
     }
 
-    public function insert(&$new)
+    public function store(&$arr)
     {
-	if (!parent::insert($new)) return false;
-	$new["id"]  = $this->getLastId();
-	if (!array_key_exists("conversation", $new) || 
-	    $new["conversation"] <= 0)
-	{
-	    $this->update(
-		array("id" => $new["id"]),
-		array("conversation" => $new["id"]));
-	}
-	$new = $this->get($new["id"]);
-	return true;
+        $arr['timestamp'] = (new DateTime())->format('Y-m-d H:i:s');
+        if (!parent::insert($arr)) return false;
+        $arr["id"]  = $this->getLastId();
+        if (!array_key_exists("conversation", $arr) ||
+            $arr["conversation"] <= 0)
+        {
+            $this->update(
+                array("id" => $arr["id"]),
+                array("conversation" => $arr["id"]));
+        }
+        $arr = $this->get($arr["id"]);
+        return true;
     }
 
     public function get($id)
     {
-	return parent::get(array(
-	    array(
-		"col" => "id",
-		"oper" => "=",
-	       	"val" => $id)));
+	return parent::getOne(array("id" => $id));
     }
 
     public function getConversation($conversation)
     {
-	$query = $this->readQuery(array(
-	    array(
-		"col" => "conversation",
-		"oper" => "=",
-	       	"val" => $conversation)));
+        $this->initQuery();
+	$query = $this->readSelect(array(
+		"conversation" => $conversation));
 	if ($query == false) return false;
-	$result = array();
-	while ($row=mysql_fetch_assoc($query)) {
-	    array_push($result, $row);
-	}
+	$result = $this->fetch_assoc_all($query);
 	return $result;
     }
 }

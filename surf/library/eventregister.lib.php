@@ -93,73 +93,60 @@ class eventregister extends table
 	$id, /* Event Id */
 	$userId)
     {
-	$retval = array();
 	$whereArr = array();
 	$this->addTerm($whereArr, "id", '=', $id);
 	$this->addTerm($whereArr, "userId", '=', $userId);
 	$order = array( "start" => "ASC");
 	$qry = $this->readQuery($whereArr, $order);
-	while ($qry && ($row = mysql_fetch_assoc($qry))) {
-	    array_push($retval, $row);
-	}
+	$retval = $this->fetch_assoc($qry);
 	return $retval;
     }
 
     public function get($id, $start, $userId)
     {
-	$whereArr = array();
-	$this->addTerm($whereArr, "id", '=', $id);
-	$this->addTerm($whereArr, "start", '=', $start);
-	$this->addTerm($whereArr, "userId", '=', $userId);
-	$qry = $this->readQuery($whereArr, array());
-	if (!$qry) return false;
-	if (mysql_num_rows($qry) >0) {
-	    return mysql_fetch_assoc($qry);
-	}
-	return false;
+        return $this->getOne(array(
+            "id" => $id,
+            "start" => $start,
+            "userId" => $userId
+        ));
     }
 
     public function register($id, $start, $userId, $enrolled)
     {
-	if (!$enrolled) {
-	    // if you don't want to enroll and never were,
-	    // we don't need to write a record
-	    if (($old=$this->get($id, $start, $userId))) {
-		$new=$old;
-		$new["enrolled"] = $enrolled;
-		$this->update($old, $new);
-	    }
-	} else {
-	    $this->insertOrUpdate(array(
-		"id" => $id,
-		"start" => $start,
-		"userId" => $userId,
-		"enrolled" => $enrolled));
-	}
+        if (!$enrolled) {
+            // if you don't want to enroll and never were,
+            // we don't need to write a record
+            $old=$this->get($id, $start, $userId);
+            if (!$enrolled) return true;
+        }
+        return $this->insertOrUpdate(array(
+            "id" => $id,
+            "start" => $start,
+            "userId" => $userId,
+            "enrolled" => $enrolled));
     }
 
     public function insertOrUpdate($arr)
     {
-	$whereArr = array();
-	$old = array();
-	foreach (array('id', 'userId', 'start') as $k) {
-	    $this->addTerm($whereArr, $k, '=', $arr[$k]);
-	    $old[$k] = $arr[$k];
-	}
-	$qr = $this->readQuery($whereArr);
-	switch (mysql_num_rows($qr)) {
-	case 0:
-	    $this->insert($arr);
-	    break;
-	case 1:
-	    $this->update($old, $arr);
-	    break;
-	case 2:
-	    $msg = "$this->tbDefine: multiple instances for".
-		implode("/", $arr);
-	    $this->tbError($msg);
-	    break;
-	}
+        $old = array();
+        foreach (array('id', 'userId', 'start') as $k) {
+            $this->addTerm($k, '=', $arr[$k]);
+            $old[$k] = $arr[$k];
+        }
+        $qr = $this->readQuery();
+        $rows = $this->fetch_assoc_all($qr);
+        switch (count($rows)) {
+            case 0:
+                return $this->insert($arr);
+            case 1:
+                return $this->update($old, $arr);
+            default:
+                $msg = "$this->tbDefine: multiple instances for".
+                    implode("/", $arr);
+                $this->tbError($msg);
+                break;
+        }
+        return false;
     }
 }
-?>
+

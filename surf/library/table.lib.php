@@ -5,7 +5,6 @@
 *
 * 08-10-2011
 */
-
 require_once "userSession.lib.php";
 
 class table
@@ -13,25 +12,69 @@ class table
     private $table = null;
     private $lastId = 0;
     // supported operators.
-    private $operators = array(
+    private $listOperators = array(
+        "IN",
+        "NOT IN"
+    );
+    private $singleOperators = array(
         "=",
         "!=",
         "<",
         ">",
         "<=",
-        ">=",
-        "IN",
-        "NOT IN");
+        ">="
+    );
+
+    private $operators;
+
+    protected $pdo;
+    protected $whereArray;
+    protected $columns;
+    protected $orderArray;
+    protected $groupArray;
+    protected $distinct;
 
     public function __construct($table)
     {
+        global $pdoGlobal;
+        $this->operators = array_merge(
+            $this->singleOperators,
+            $this->listOperators);
         $this->table = SQL_PREFIX . $table;
+        if ($pdoGlobal == null) {
+            $this->makePDO();
+        }
+        $this->initQuery();
+    }
+    public function initQuery() {
+        $this->whereArray = array(
+            'terms' => array(),
+            'data' => array()
+        );
+        $this->orderArray =  array();
+        $this->groupArray =  array();
+        $this->columns = array();
+        $this->distinct = "";
+    }
+    private function makePDO() {
+        global $pdoGlobal;
+        try {
+            $dsn = sprintf('mysql:dbname=%s;host=%s', SQL_DBASE, SQL_DBHOST);
+            $pdoGlobal = new PDO ($dsn,
+                SQL_DBUSER,
+                SQL_DBPSWD);
+            $pdoGlobal->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdoGlobal->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+        } catch (exception $e) {
+            genLogVar(__FUNCTION__." PDO error ", $e->getMessage());
+            die("Aaarghhhh! No Database :-(");
+        }
     }
 
     /**
      * Normalize values to match the possible values in the database
      */
-    private function normalizeRecord($rec)
+    protected function normalizeRecord($rec)
     {
         foreach (array_keys($rec) as $key) {
             switch (strtolower($this->structure[$key]["type"])) {
@@ -117,23 +160,36 @@ class table
         }
     }
 
-    public function fetch_assoc($query)
+    public function fetch_assoc($sth)
     {
-        $arr = mysql_fetch_assoc($query);
-        if (!$arr) {
-            return $arr;
+        if (!$sth) return false;
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $row = $this->reformatRow($row);
         }
-        if (!property_exists(get_class($this), 'structure'))
-            return $arr;
-        foreach ($arr as $k => $v) {
-            $arr[$k] = iconv("UTF-8", "UTF-8//IGNORE", $v);
-            if (!array_key_exists($k, $this->structure))
+        return $row;
+    }
+
+    public function fetch_assoc_all($sth)
+    {
+        $result = array();
+        while ($row = $this->fetch_assoc($sth)) {
+            array_push($result, $row);
+        }
+        return $result;
+    }
+
+    private function reformatRow($row) {
+        $hasStructure = property_exists(get_class($this), 'structure');
+        foreach ($row as $k => $v) {
+            $row[$k] = iconv("UTF-8", "UTF-8//IGNORE", $v);
+            if (!$hasStructure || !array_key_exists($k, $this->structure))
                 continue;
             if ($this->structure[$k]["type"] == "datetime_local") {
-                $arr[$k] = preg_replace("/ /", "T", $v, 1);
+                $row[$k] = preg_replace("/ /", "T", $row[$k], 1);
             }
         }
-        return $arr;
+        return $row;
     }
 
     private function isValidTel(&$val)
@@ -319,13 +375,18 @@ class table
 
     public function tbError($msg)
     {
+        global $pdoGlobal;
+        $errorInfo = $pdoGlobal->errorInfo();
+        if (!$errorInfo[0]) return false;
         if (!isset($msg)) {
-            $msg = get_class($this) . ": " . mysql_error();
+            $msg = get_class($this) . " PDO error: " . $errorInfo[0] . "=" . $errorInfo[2];
         }
-        // genSetError($msg);
         genLogVar("DB error", $msg);
+        print $msg;
+        return true;
     }
 
+    // TODO: fix this one
     private function makeQueryTerm($arr)
     {
         $retval = $arr["col"] . " " . $arr["oper"] . " ";
@@ -338,21 +399,41 @@ class table
         return $retval;
     }
 
-    // Expects array(array(column, rel. operator, value)[, ...])
-    private function makeQueryClause($arr)
+    /**
+     * @param $arr - array of query terms
+     * @return string "WHERE ...." or ""
+     * @throws Exception
+     */
+    private function makeWhereClause()
     {
-        if (0 == count($arr))
-            return "";
-        $whereClause = "";
-        $elt = array_shift($arr);
-        $result = "WHERE " . $this->makeQueryTerm($elt);
-        while ($elt = array_shift($arr)) {
-            $result .= " AND " . $this->makeQueryTerm($elt);
-        }
+        $reason = 'faulty query array';
+        $result = join(" AND ", $this->whereArray['terms']);
+        if (strlen($result) > 0) $result = "WHERE ".$result;
+        // we used to be able to have clauses with multiple values, do we need 'm
+        // if (0 == count($arr))
+        //     return "";
+        // $whereClause = "";
+        // $elt = array_shift($arr);
+        // $result = "WHERE " . $this->makeQueryTerm($elt);
+        // while ($elt = array_shift($arr)) {
+        //     $result .= " AND " . $this->makeQueryTerm($elt);
+        // }
         return $result;
     }
 
-    private function makeWhereClause($arr)
+    public function makeWhereClauseExpanded()
+    {
+        $result = array();
+        for ($i = 0; $i < count($this->whereArray['terms']); $i++) {
+            array_push($result,
+                $this->whereArray['terms'][$i].
+                $this->whereArray['data'][$i]
+            );
+        }
+        return join(" AND ", $result);
+    }
+/**
+    private function makeWhereClauseObsolete($arr)
     {
         if (0 == count($arr))
             return "";
@@ -364,153 +445,234 @@ class table
             } else {
                 $whereClause = "where ";
             }
-            $whereClause .= sprintf(' %s="%s"', $key, mysql_real_escape_string($arr[$key]));
+            $whereClause .= sprintf(' %s="%s"', $key, myOBSOLETEsql_real_escape_string($arr[$key]));
             $busy = true;
         }
         return $whereClause;
     }
-
-    private function makeOrderByClause($arr)
+*/
+    private function makeOrderByClause()
     {
         $orderByClause = "";
-        if (count($arr) > 0)
-            $orderByClause = "ORDER BY";
-        $sep = "";
-        foreach ($arr as $key => $val) {
-            $orderByClause .= " $sep $key $val";
-            $sep = ",";
+        if (count($this->orderArray) > 0) {
+            $orderByClause = "ORDER BY " . join(", ", $this->orderArray);
         }
         return $orderByClause;
     }
-
-    private function isUniqueWhereClause($whereClause)
+    
+    public function makeGroupByClause()
     {
-        $cmd = sprintf("select * from %s %s", $this->table, $whereClause);
-        $result = mysql_query($cmd);
-        if (!$result) {
+        $groupByClause = "";
+        if (count($this->groupArray) > 0) {
+            $groupByClause = "GROUP BY " . join(", ", $this->groupArray);
+        }
+        return $groupByClause;
+    }
+
+    public function isUniqueWhereClause()
+    {
+        global $pdoGlobal;
+        $this->addColumn("count(*) cnt");
+        $sth = $this->readQuery();
+        if (!$sth) {
             $this->tbError(null);
             return false;
         }
-        $numRows = mysql_num_rows($result);
-        switch ($numRows) {
+        $row = $this->fetch_assoc($sth);
+        switch ($row['cnt']) {
             case 1:
                 return true;
                 break;
             default:
-                $this->tbError(sprintf("%d rows in %s %s", $numRows, $this->table, $whereClause));
+                $this->tbError(sprintf("%d rows in %s %s",
+                    $row['cnt'],
+                    $this->table,
+                    $this->makeWhereClauseExpanded()));
                 return false;
                 break;
         }
     }
 
-    public function addTerm(&$list, $column, $oper, $val)
+    /**
+     * @param $column
+     * @param $operator:  valid
+     * @param $values: mixed value or array of values
+     * @return bool valid term or not
+     */
+    public function addTerm($column, $operator, $values)
     {
-        $operIdx = array_search($oper, $this->operators);
-        if ($operIdx === false) {
-            genSetError(__file__ . ":" . __function__ . ": unsupported operator in $column, $oper, $val");
+        if (!is_array($values)) $values = array($values);
+        $parameters = array_merge(array(), $values);
+        foreach ($parameters as $key => $value) {
+            $parameters[$key] = "?";
+        }
+        $parameterString = " (".join(",", $parameters).")";
+        $operatorIdx = array_search($operator, $this->operators);
+        if ($operatorIdx === false) {
+            throw new Exception(__CLASS__ . ":" . __FUNCTION__ .
+                ": unsupported operator in $column, $operator, (".
+                join(", ", array($values)).")"
+            );
+        }
+        if (!$this->hasColumn($column)) {
+            throw new Exception("$column does not exist in ".$this->table);
+        }
+        array_push($this->whereArray['terms'], $column." ".$operator. $parameterString);
+        $this->whereArray['data'] = array_merge($this->whereArray['data'], $values);
+        return true;
+    }
+
+    public function addColumn($column) {
+        if (!$this->hasColumn($column)) {
+            throw new Exception("$column does not exist in ".$this->table);
+        }
+        array_push($this->columns, $column);
+    }
+
+    public function addColumns() {
+        $all_args = func_get_args();
+        foreach ($all_args as $column) {
+            $this->addColumn($column);
+        }
+    }
+
+    private function isValidWhereArray() {
+        if (!is_array($this->whereArray)) return false;
+        if (!array_key_exists('terms', $this->whereArray)) $this->whereArray['terms'] = array();
+        if (!array_key_exists('data', $this->whereArray)) $this->whereArray['data'] = array();
+        if (count($this->whereArray) != 2 || (count($this->whereArray['terms']) != count($this->whereArray['data']))) {
+
             return false;
         }
-        if (is_int($column)) {
-            genSetError(__file__ . ":" . __function__ . ": InValid column name $column");
+        foreach ($this->whereArray as $elt) {
+            if ($this->isValidWhereClause($elt)) return false;
         }
-        array_push($list, array(
-            "col" => $column,
-            "oper" => $oper,
-            "val" => $val));
         return true;
+    }
+    private function isValidWhereClause($elt) {
+        if (!is_array($elt)) {
+            genLogVar(__CLASS__.":".__FUNCTION__.": faulty element:", $elt);
+            return false;
+        }
+        if (array_key_exists("col", $elt)) {
+            if (is_int($elt["col"]) || !array_key_exists($elt["col"], $this->structure)) {
+                genLogVAr(__CLASS__.":".__FUNCTION__.": invalid column name: '" . $elt["col"] . "'");
+                GenLogVar(__CLASS__.":".__function__ . "colums are ", $this->structure);
+                return false;
+            }
+        } else {
+            genLogVAr(__CLASS__.__function__ . "invalid whereArr (missing column name):", print_r($elt,true));
+            return false;
+        }
+        return true;
+    }
+
+    public function addOrderTerm($column, $order) {
+        if (!$this->hasColumn($column)) {
+            throw new Exception("Invalid column: ".print_r($column, true));
+        }
+        array_push($this->orderArray, "$column $order");
+    }
+
+    public function addGroupTerm() {
+        $columns = func_get_args();
+        foreach ($columns as $column) {
+            if (!$this->hasColumn($column)) {
+                throw new Exception("Invalid column: " . print_r($column, true));
+            }
+            array_push($this->groupArray, $column);
+        }
+    }
+
+    public function addDistinct()
+    {
+        $this->distinct = "DISTINCT";
+    }
+
+    /**
+     * Test whether the aggregate contains an existing column
+     * It is not the perfect test, but it helps for stupid typos
+     * @param $aggregate some aggregate containing a column
+     * @return bool
+     */
+    private function hasColumn($aggregate) {
+        if (!property_exists($this, 'structure')) return true;
+        if (!is_array($this->structure)) return true;
+        $parts = preg_split('/[-+()]/', $aggregate);
+        $wantCount = false;
+        while (count($parts)) {
+            $column = array_shift($parts);
+            $wantCount = (strtolower($column) == "count"? true: $wantCount);
+            if ($wantCount && ($column=='*')) return true;
+            if (is_numeric($column)) continue;
+            if (array_key_exists($column, $this->structure)) return true;
+        }
+        return false;
     }
 
     /*!
     * Read according to optional query ordered according to order argument
     *
     * \code
-    * $result = $table->readQuery([ $whereArr[, $orderArr]]);
+    * $result = $table->readQuery([ $whereArr[, $orderArr[, what]]]);
     * \endcode
     * ** Example
     * \code
     * // Select all
-    * $result = $table->readQuery();
-    * while ($row = mysql_fetch_assoc($result)) {
+     * $table->initQuery();
+    * $sth = $table->readQuery();
+    * while ($row = $table->fetch_assoc($sth)) {
     *     print_r($row);
     * }
     * // Select some
-    * $table->addTerm($whereArr, 'modifiedDate', '>', "2013-03-08")
-    * $result = $table->readQuery($whereArr);
-    * while ($row = mysql_fetch_assoc($result)) {
+     * $table->initQuery();
+    * $table->addTerm('modifiedDate', '>', "2013-03-08");
+    * $sth = $table->readQuery();
+    * while ($row = $table->fetch_assoc($sth)) {
     *     print_r($row);
     * }
     * // Select some in some order
-    * $table->addTerm($whereArr, 'modifiedDate', '>', "2013-03-08")
-    * $order = array("modifiedDate' => "DESC", 'category' => 'ASC');
-    * $result = $table->readQuery($whereArr), $orderArr)
-    * while ($row = mysql_fetch_assoc($result)) {
+    * $table->addTerm('modifiedDate', '>', "2013-03-08")
+    * $table=>addOrderTerm("modifiedDate',"DESC");
+     * $table->addOrderTerm('category' => 'ASC');
+    * $sth = $table->readQuery($whereArr), $orderArr);
+    * while ($row = $table->fetch_assoc($sth)) {
     *     print_r($row);
     * }
     * \endcode
     */
-    /**
-     * whereArr = array(array(col => col, oper => oper, val => val)[, ...])
-     */
     public function readQuery()
     {
-        if (!genDBConnected()) {
-            genLogVar(__CLASS__ . ":" . __function__, " Geen database connectie");
-            return false;
-        }
-        $nrArgs = func_num_args();
-        $allArgs = func_get_args();
-        if ($nrArgs > 4) {
-            genSetError(__CLASS__ . ":" . __function__, "wrong number of arguments ($nrArgs)" .
-                "expecting [whereArr [, orderArr [, columnArr ]]]");
-            return false;
-        }
-            $whereArr = array();
-            $orderArr = array();
-            $cols = "*";
-            $distinct = "";
+        global $pdoGlobal;
 
-        if ($nrArgs >= 1) {
-            $whereArr = array_shift($allArgs);
-        }
-        if ($nrArgs >= 2) {
-            $orderArr = array_shift($allArgs);
-        }
-        if ($nrArgs >= 3) {
-            $cols = join(",", array_shift($allArgs));
-        }
-        if ($nrArgs >= 4) {
-            $distinct = array_shift($allArgs);
-        }
-        if (!is_array($whereArr)) {
-            genLogVar(__CLASS__.":".__function__ . ":" . __line__ . ": arg 1 is not an array of arrays:",
-                $whereArr);
-            return false;
-        }
+        //foreach ($this->whereArray['terms'] as $elt) {
+        //    if (!is_array($elt)) {
+        //        print_r($elt);
+        //        genLogVar(__function__ . ":" . __line__ . ": arg 1 is not an array of arrays:",
+        //            $this->whereArray);
+        //        genLogVar(__CLASS__.":".__FUNCTION__.": faulty element:", $elt);
+        //        return false;
+        //    }
+        //    if (array_key_exists("col", $elt)) {
+        //        if (is_int($elt["col"]) || !array_key_exists($elt["col"], $this->structure)) {
+        //            genLogVar(__CLASS__.":".__FUNCTION__.": invalid column name: '" . $elt["col"] . "'");
+        //            GenLogVar(__CLASS__.":".__function__ . "whereArr=", $this->whereArray);
+        //            GenLogVar(__CLASS__.":".__function__ . "colums are ", $this->structure);
+        //            return false;
+        //        }
+        //    } else {
+        //        genLogVAr(__CLASS__.__function__ . "invalid whereArr (missing column name):", $this->whereArray);
+        //        break;
+        // //}
+        //}
 
-        foreach ($whereArr as $elt) {
-            if (!is_array($elt)) {
-                genLogVar(__function__ . ":" . __line__ . ": arg 1 is not an array of arrays:",
-                    $whereArr);
-                genLogVar(__CLASS__.":".__FUNCTION__.": faulty element:", $elt);
-                return false;
-            }
-            if (array_key_exists("col", $elt)) {
-                if (is_int($elt["col"]) || !array_key_exists($elt["col"], $this->structure)) {
-                    genLogVAr(__CLASS__.":".__FUNCTION__.": invalid column name: '" . $elt["col"] . "'");
-                    GenLogVar(__CLASS__.":".__function__ . "whereArr=", $whereArr);
-                    GenLogVar(__CLASS__.":".__function__ . "colums are ", $this->structure);
-                    return false;
-                }
-            } else {
-                genLogVAr(__CLASS__.__function__ . "invalid whereArr (missing column name):", $whereArr);
-                break;
-            }
-        }
-
-        $cmd = sprintf("select %s %s from %s %s %s", $distinct, $cols, $this->table, $this->
-            makeQueryClause($whereArr), $this->makeOrderByClause($orderArr));
+        $cols = join(', ', $this->columns);
+        if (strlen($cols) == 0) $cols = '*';
+        $cmd = sprintf("select %s %s from %s %s %s %s", $this->distinct, $cols, $this->table,
+            $this->makeWhereClause(), $this->makeGroupByClause(), $this->makeOrderByClause());
+        $result = $pdoGlobal->prepare($cmd);
         //genSetError(__FUNCTION__.":".__LINE__." cmd=$cmd");
-        $result = mysql_query($cmd);
+        $result->execute($this->whereArray['data']);
         if (!$result) {
             $this->tbError($cmd);
             $this->tbError(null);
@@ -518,21 +680,48 @@ class table
         return $result;
     }
 
-
-    /*!
-    * obsolete, user readSelect with 2 arguments
-    */
-    public function readSelectOrdered($whereArr, $orderArr)
+    /**
+     * @param whereArr( optional) for readSelect, default empty array
+     * @param orderArr( optional) for readSelect, default empty array
+     * @return array|bool
+     */
+    public function getSelect()
     {
-        return $this->readSelect($whereArr, $orderArr);
+        $allArgs = func_get_args();
+        if (count ($allArgs) > 2) {
+            $this->tbError(__CLASS__ . ":" . __FUNCTION__ . ": Too many arguments: " . join(", ", $allArgs));
+            return false;
+        }
+        $whereArr = array();
+        if (count($allArgs))
+        {
+            $whereArr = array_shift($allArgs);
+        }
+        $orderArr = array();
+        if (count($allArgs))
+        {
+            $orderArr = array_shift($allArgs);
+        }
+
+        $sth = $this->readSelect($whereArr, $orderArr);
+        return $this->fetch_assoc_all($sth);
     }
 
-    /*
-    * \brief make a selection for reading
-    * arguments:
-    * $whereArr: assoc array of column and value pairs
-    * \returns result to be used in mysql_fetch... calls
-    */
+    /**
+     * @return array all rows matching the prepared query
+     */
+    public function getQuery()
+    {
+        $sth = $this->readQuery();
+        return $this->fetch_assoc_all($sth);
+    }
+
+    /**
+     * @param whereArr assoc array, each element is interpreted as <column> = <value> in the query
+     * @param orderArr( optional) for readSelect, (default empty) assoc array, each element is interpreted
+     *          order by <column> <order>
+     * @return array|bool
+     */
     public function readSelect()
     {
         $nrArgs = func_num_args();
@@ -549,85 +738,79 @@ class table
             $orderArr = array();
         }
 
-        if (!genDBConnected()) {
-            genSetError(__file__ . ":" . __function__ . " Geen database connectie");
-            return false;
+
+        $this->initQuery();
+        foreach ($whereArr as $key => $value) {
+            $this->addTerm($key, '=', $value);
         }
-        $testKeys = array_keys($whereArr);
-        if (count($testKeys) && is_int($testKeys[0])) {
-            genSetError(__file__ . ":" . __function__ . "Numerieke kolomnaam");
-            return false;
+        foreach ($orderArr as $key => $value) {
+            $this->addOrderTerm($key, $value);
         }
-        $cmd = sprintf("select * from %s %s %s", $this->table, $this->makeWhereClause($whereArr),
-            $this->makeOrderByClause($orderArr));
-        $result = mysql_query($cmd);
-        if (!$result) {
-            $this->tbError(null);
-        }
-        return $result;
+        return $this->readQuery();
     }
 
     public function insert($arr)
     {
-        if (!genDBConnected())
-            return false;
+        global $pdoGlobal;
+        if ($pdoGlobal == null)return false;
         // Keys of $arr must be non-numeric
-        // That makes $arr an associatve array
-        $testKeys = array_keys($arr);
-        if (!count($testKeys)) {
+        // That makes $arr an associative array
+        if (!count($arr)) {
             $this->tbError("Leeg record kan niet worden ingevoerd");
             return false;
         }
-        if (is_int($testKeys[0])) {
-            $this->tbError(__file__ . ":" . __function__ . "ongeldige kolomnaam: ", $testKey[0]);
-            return false;
-        }
-        $colList = "";
-        $valList = "";
-        foreach (array_keys($arr) as $key) {
-            if (strlen($colList)) {
-                $colList .= ", ";
-                $valList .= ", ";
+        $cols = array();
+        $placeHolders = array();
+        $values = array();
+        foreach ($arr as $key => $value) {
+            if (!$this->hasColumn($key)) {
+                throw new Exception("Column $key not defined in ".$this->getTable());
             }
-            $colList .= $key;
-            #if (is_numeric($arr[$key])) {
-            #	$valList .= $arr[$key];
-            #    } else {
-            $valList .= '"' . mysql_real_escape_string(iconv("UTF-8", "UTF-8//IGNORE", $arr[$key])) .
-                '"';
-            #    }
+            array_push($cols, $key);
+            array_push($placeHolders,"?");
+            array_push($values, $value);
         }
-        $sqlcmd = sprintf("INSERT INTO %s (%s) values (%s)", $this->table, $colList, $valList);
+        $colList = join(", ", $cols);
+        $placeHolderList = join(", ", $placeHolders);
+        $sqlcmd = sprintf("INSERT INTO %s (%s) values (%s)", $this->table, $colList, $placeHolderList);
         genLogVar(__class__ . ":" . __function__ . ":" . __line__ . " insert Command: ",
             $sqlcmd);
-        $result = mysql_query($sqlcmd);
+        $sth = $pdoGlobal->prepare($sqlcmd);
+        $result = $sth->execute($values);
         if ($result) {
-            $this->lastId = mysql_insert_id();
+            $this->lastId = $pdoGlobal->lastInsertId();
         } else {
-            genLogVar("mysql Error", mysql_error());
             $this->tbError(null);
             return false;
         }
         return true;
     }
+    public function assocToWhere($assoc)
+    {
+        $this->initQuery();
+        foreach ($assoc as $column => $value) {
+            $this->addTerm($column, "=", $value);
+        }
+    }
 
     /*
     * delete must delete just a single row in every call
-    * hence the hassle with the sellect before the delete.
+    * hence the hassle with the select before the delete.
     */
-    public function delete($arr)
+    public function delete($old)
     {
-        if (!genDBConnected())
-            return false;
-        $whereClause = $this->makeWhereClause($arr);
-        if (!$this->isUniqueWhereClause($whereClause)) {
-            $msg = __file__ . ":" . __function__ . " attempting multiple delete " . $whereclause;
+        global $pdoGlobal;
+        $this->assocToWhere($old);
+        $whereClause = $this->makeWhereClause();
+        if (!$this->isUniqueWhereClause()) {
+            $msg = __file__ . ":" . __function__ . " attempting multiple delete " . $whereClause;
             //genSetError($msg);
-            genLogVar("delete", $msg);
+            genLogVar(__FUNCTION__, $msg);
             return false;
         }
         $cmd = sprintf("DELETE FROM %s %s", $this->table, $whereClause);
-        $result = mysql_query($cmd);
+        $sth = $pdoGlobal->prepare($cmd);
+        $result = $sth->execute($this->whereArray['data']);
         if (!$result) {
             genLogVar("line :" . __line__ . ": ", $cmd);
             $this->tbError(null);
@@ -636,76 +819,65 @@ class table
         return true;
     }
 
-    public function deleteMany($arr)
+    public function deleteMany()
     {
-        if (!genDBConnected())
-            return false;
-        $whereClause = $this->makeWhereClause($arr);
+        global $pdoGlobal;
+        $whereClause = $this->makeWhereClause();
 
         $cmd = sprintf("DELETE FROM %s %s", $this->table, $whereClause);
-        $result = mysql_query($cmd);
+        $sth = $pdoGlobal->prepare($cmd);
+        $result = $sth->execute($this->whereArray['data']);
+
         if (!$result) {
-            genLogVar("Line:" . __line__ . ": ", $cmd);
+            genLogVar(__FUNCTION__.":" . __line__ . ": ", $cmd);
             $this->tbError(null);
         }
         return $result;
     }
-    /*
+    /**
     * update must update just a single row in every call
     * hence the hassle with the select before the update.
-    */
+     * @param $old: assoc array holding old values for columns
+     * @param $new: assoc array holding zero or more new values
+     * @return bool: indicating success
+     */
     public function update($old, $new)
     {
-        if (!genDBConnected())
+        global $pdoGlobal;
+        if (!$pdoGlobal) return false;
+        $this->assocToWhere($old);
+        if (!$this->isUniqueWhereClause()) {
             return false;
-        $whereClause = $this->makeWhereClause($old);
-        if (!$this->isUniqueWhereClause($whereClause))
-            return false;
-
-        $busy = false;
-        foreach (array_keys($new) as $key) {
-            if ($busy) {
-                $setClause .= ",";
-            } else {
-                $setClause = "SET";
-            }
-            $setClause .= sprintf(' %s="%s"', $key, mysql_real_escape_string(iconv("UTF-8",
-                "UTF-8//IGNORE", $new[$key])));
-            $busy = true;
         }
-        if ($busy) {
-            $cmd = sprintf("UPDATE %s %s %s", $this->table, $setClause, $whereClause);
-            $result = mysql_query($cmd);
-            if (!$result) {
-                genLogVar("Line:" . __line__, $cmd);
-                $this->tbError(null);
-                return false;
-            }
+
+        $updates = array();
+        $data = array();
+        foreach ($new as $key => $val) {
+            array_push($updates, $key." = ?");
+            array_push($data, $val);
+        }
+        if (!count($updates)) return true;
+        $cmd = sprintf("UPDATE %s SET %s %s",
+            $this->table,
+            join(', ', $updates),
+            $this->makeWhereClause());
+        $data = array_merge($data, $this->whereArray['data']);
+        $sth = $pdoGlobal->prepare($cmd);
+        $result = $sth->execute($data);
+        if (!$result) {
+            genLogVar(__CLASS__.">".__FUNCTION__.":". __line__, $cmd);
+            $this->tbError(null);
+            return false;
         }
         return true;
     }
 
     public function getColumns()
     {
-        if (!genDBConnected())
-            return false;
-        // The number of available fieldnames returned by
-        // mysql_list_fields is unknown. But this is a sweet
-        // workaround
-        // Step 1: get the nr of columns
-        $result = mysql_query("SHOW COLUMNS FROM " . $this->table);
-        if (!$result) {
-            $this->tbError(null);
-            return false;
+        if (property_exists($this, 'structure')) {
+            return array_keys($this->structure);
         }
-        $nrOfColumns = mysql_num_rows($result);
-        // Step 2: get the column names
-        $columns = array();
-        $result = mysql_list_fields(SQL_DBASE, $this->table);
-        for ($i = 0; $i < $nrOfColumns; $i++) {
-            array_push($columns, mysql_field_name($result, $i));
-        }
-        return $columns;
+        return false;
     }
 
     public function getLastId()
@@ -736,21 +908,19 @@ class table
         return $result;
     }
 
-    public function get($arr)
+    public function getOne($arr)
     {
-        $retval = false;
-        $query = $this->readQuery($arr);
-        if ($query) {
-            if (mysql_num_rows($query) == 1) {
-                $retval = $this->fetch_assoc($query);
+        $retVal = false;
+        $sth = $this->readSelect($arr);
+        if ($sth) {
+            if ($sth->rowCount() == 1) {
+                $retVal = $this->fetch_assoc($sth);
             } else {
-                $this->tbError(__class__ . ":" . __function__ . ": " . mysql_num_rows($query) .
+                $this->tbError(__class__ . ":" . __function__ . ": " . $sth->rowCount() .
                     " rijen gevonden ");
             }
-        } else {
-            $this->tbError(null);
         }
-        return $retval;
+        return $retVal;
     }
 
     public function getLabel($col)

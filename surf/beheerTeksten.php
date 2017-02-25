@@ -9,6 +9,7 @@ require_once "library/all_config.lib";
 +
 require_once "general.lib.php";
 require_once "teksten.lib.php";
+require_once "userSession.php";
 
 class beheerTekst
 {
@@ -20,6 +21,10 @@ class beheerTekst
         $this->teksten = new teksten();
         $authorized = genIsAuthorized();
         $fd = genGetFormdata(array("teksten" => array()));
+        if (count(array_keys($_POST))) {
+            handlePostData($fd);
+        }
+        $teksten = $this->teksten->getAll();
     }
 
 }

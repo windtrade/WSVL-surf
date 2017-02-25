@@ -119,10 +119,8 @@ class event extends table
         if (func_num_args() >= 2) {
             $textHTML = func_get_arg($i++);
         }
-        $result = parent::get(array(array(
-                "col" => "id",
-                "oper" => "=",
-                "val" => $id)));
+        $result = $this->getOne(array(
+                "id" => $id));
         if ($textHTML) {
             $this->parseDown($result);
         }

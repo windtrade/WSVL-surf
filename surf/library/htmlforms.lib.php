@@ -106,6 +106,11 @@ class htmlforms
             $pd["value"] . "\" />";
     }
 
+    /**
+     * @param $name
+     * @param $pd
+     * @return string <td>$name</td><td>(other field)</td>
+     */
     private function otherField($name, $pd)
     {
         return "<td>" . $pd["label"] . "</td><td>" . "<!-- unsupported input type: " . $pd["type"] .

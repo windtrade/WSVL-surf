@@ -32,7 +32,7 @@ class contactPage
         $user = $data["user"];
         $interest = $data["interest"];
         $contact = $data["contact"];
-        $tekst = $this->teksten->getTekst(27, false); /** NO HTML */
+        $tekst = $this->teksten->getTekstPlain(27);
         /* Build list of addresses to inform */
         $emails = array();
         foreach ($this->user_roles->getUsersWithRoles(ROLE_MEMBERADMIN) as $id) {
@@ -96,7 +96,7 @@ class contactPage
     {
         $contact = $fd["contact"];
         $contact["from_id"] = $fd["user"]["id"];
-        $this->contact->insert($contact);
+        $this->contact->store($contact);
         $fd["contact"]["id"] = $this->contact->getLastId();
     }
 

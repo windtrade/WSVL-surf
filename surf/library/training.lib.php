@@ -4,6 +4,7 @@
 	feb 2011 Huug Peters
 	01-04-2011 : huug : fixed volgendeTraining
 	13-08-2011 : huug : functie aanmelden toegevoegd
+	TODO: obsolete
 */
 	function eersteTraining()
 	{

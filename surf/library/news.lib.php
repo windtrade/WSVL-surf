@@ -113,12 +113,16 @@ class news extends table
             "protected" => "1",
             "check" => ""));
 
+    public function get($id)
+    {
+        return $this->getOne(array("news_id" => $id ));
+    }
 
-    public function insert($new)
+    public function insert($arr)
     {
         $dt = new DateTime();
-        $new["news_timestamp"] = $dt->format("Y-m-d H:i:s");
-        return parent::insert($new);
+        $arr["news_timestamp"] = $dt->format("Y-m-d H:i:s");
+        return parent::insert($arr);
     }
 
     public function update($old, $new)
@@ -138,40 +142,47 @@ class news extends table
         $this->structure    ["news_rubriek_id"] = general::getCategoryDefinition();
     }
 
+    /**
+     * select all news that may be viewed by the public
+     * @return mixed: sth as argument for fetch_assoc(_all) or false
+     */
     public function getPublic() # Select all public News
         # in reversed order by publication date (=hotFrom)
     {
-        $today = new DateTime();
-        $tomorrow = new DateTime();
-        $today->modify("today");
-        $tomorrow->modify("tomorrow");
-        $sqlCmd = "SELECT * FROM " . $this->getTableName() . " where " .
-            "news_hotFrom <= '" . $tomorrow->format('Y-m-d') . "' " .
-            "ORDER BY news_hotFrom DESC";
-        $result = mysql_query($sqlCmd);
-        if (!$result) {
-            genSetError("SqlCommand: " . $sqlCmd);
-            $this->tbError(null);
-            return $result;
-        }
-        if (0 < mysql_num_rows($result))
-            return $result;
-        # nothing hot, return the most recent news
-        $sqlCmd = "SELECT * FROM " . $this->getTableName() . " where " .
-            "news_hotFrom =< '" . $tomorrow . format('Y-m-d') .
-            "' ORDER BY news_id DESC LIMIT 1";
-        $result = mysql_query($sqlCmd);
+        $tomorrow = (new DateTime('tomorrow'))->format('Y-m-d');
+        $this->initQuery();
+        $this->addTerm("news_hotFrom", "<=",$tomorrow);
+        $this->addOrderTerm('news_hotFrom', 'DESC');
+        $result = $this->readQuery();
         if (!$result) {
             $this->tbError(null);
-            return $result;
         }
         return $result;
     }
 
-    /** Text fields are marked down */
-    public function fetch_assoc($query)
+    /**
+     * this allows the use of a class specific fetch_assoc
+     * return all records selected by $query
+     * @param $sth handle returned by readQuery
+     * @return array all selected records
+     */
+    public function fetch_assoc_all($sth)
     {
-        $result = parent::fetch_assoc($query);
+        $result = array();
+        while ($row = $this->fetch_assoc($sth)) {
+            array_push($result, $row);
+        }
+        return $result;
+    }
+
+    /**
+     * Text fields are marked down
+     * @param $sth handle returned by readQuery
+     * @return mixed assoc array of a single record or false
+     */
+    public function fetch_assoc($sth)
+    {
+        $result = parent::fetch_assoc($sth);
         if (!$result)
             return $result;
         if ($this->returnHTML) {
@@ -186,63 +197,41 @@ class news extends table
         return $result;
     }
 
-    public function get($news_id)
-    {
-        $sqlCmd = "SELECT * FROM " . $this->getTableName() . " where " . "news_id= " . $news_id;
-        $result = mysql_query($sqlCmd);
-        if (!$result) {
-            genSetError("SqlCommand: " . $sqlCmd);
-            $this->tbError(null);
-            return $result;
-        }
-        if (0 == mysql_num_rows($result)) {
-            genSetError("News $news_id does not exist");
-            return false;
-        }
-        return $this->fetch_assoc($result);
-    }
-
     public function get4HTML($news_id)
     {
         $oldReturn = $this->returnHTML;
         $this->returnHTML = true;
         $result = $this->get($news_id);
-        /* TODO: obsolete 13-12-2015
-        foreach ($result as $key => $val) {
-        $result["$key"]=nl2br($val);
-        }
-        */
+        $this->returnHTML = $oldReturn;
         return $result;
     }
 
-
+    /**
+     * Select all hot news
+     * @return mixed: sth as argument for fetch_assoc(_all) or false
+     */
     public function getHot() # Select all hot News
     {
-        $today = new DateTime();
-        $tomorrow = new DateTime();
-        $today->modify("today");
-        $tomorrow->modify("tomorrow");
-        $sqlCmd = "SELECT * FROM " . $this->getTableName() . " where " .
-            "news_hotFrom <= '" . $tomorrow->format('Y-m-d') . "' and " . "news_hotTo >= '" .
-            $today->format('Y-m-d') . "' " . "ORDER BY news_hotTo DESC";
-        $result = mysql_query($sqlCmd);
-        if (!$result) {
-            genLogVar("SqlCommand: " . $sqlCmd);
-            $this->tbError(null);
-            return $result;
-        }
-        if (0 < mysql_num_rows($result))
-            return $result;
-        # nothing hot, return the most recent news
-        $sqlCmd = "SELECT * FROM " . $this->getTableName() . " where " .
-            "news_hotFrom <= '" . $tomorrow->format('Y-m-d') .
-            "' ORDER BY news_id DESC LIMIT 1";
-        $result = mysql_query($sqlCmd);
-        if (!$result) {
-            $this->tbError(null);
-            return $result;
-        }
-        return $result;
+        $today = (new DateTime("today"))->format("Y-m-d");
+        $tomorrow = (new DateTime("tomorrow"))->format("Y-m-d");
+        $this->initQuery();
+        $this->addTerm("news_hotFrom", "<=", $tomorrow);
+        $this->addTerm("news_hotTo", '>=', $today);
+        $this->addOrderTerm("news_hotTo", "DESC");
+        $sth = $this->readQuery();
+        return $sth;
+    }
+
+    /**
+     * Select all hot news
+     * @return mixed: sth as argument for fetch_assoc(_all) or false
+     */
+    public function getAll() # Select all hot News
+    {
+        $this->initQuery();
+        $this->addOrderTerm("news_id", "DESC");
+        $sth = $this->readQuery();
+        return $sth;
     }
 
     public function create()
@@ -272,7 +261,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 -- Tabel structuur voor tabel `news`
 --
--- Gecreëerd: 09 Feb 2011 om 14:20
+-- Gecreï¿½erd: 09 Feb 2011 om 14:20
 -- Laatst bijgewerkt: 18 Mar 2012 om 07:46
 --
 

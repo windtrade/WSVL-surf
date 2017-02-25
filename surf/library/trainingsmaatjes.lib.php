@@ -13,10 +13,10 @@ class Trainingsmaatjes extends table
     private $tbDefine="SQL_TBTRAININGSMAATJES";
     private $token;
 
-    public function insert($new)
+    public function insert($arr)
     {
-	$new["token"] = $this->token;
-	return parent::insert($new);
+	$arr["token"] = $this->token;
+	return parent::insert($arr);
     }
 
     public function getToken()

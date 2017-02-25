@@ -65,7 +65,7 @@ class Tarif extends table
     public function get($id, $valid_from)
     {
 	genSetError("Tarif ".__FUNCTION__." $id $valid_from");
-	return parent::get(
+	return parent::getOne(
 	    array(
 		array(
 		    "col"  => "id",

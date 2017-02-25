@@ -70,24 +70,6 @@ class Calendar extends table
 	    "protected"  => "0",
 	    "check" => "")
 	);
-    private $spareStructure = array(
-	"veld" => array(
-	    "label" => "qqq",
-	    "default" => "",
-	    "role" => "public",
-	    "mandatory" => "0",
-	    "type" => "text",
-	    "protected"  => "0",
-	    "check" => ""),
-	"event_id" => array(
-	    "label" => "qqq",
-	    "default" => "",
-	    "role" => "public",
-	    "mandatory" => "0",
-	    "type" => "text",
-	    "protected"  => "0",
-	    "check" => "")
-	);
     
     private $returnHTML = false;
 
@@ -104,86 +86,124 @@ class Calendar extends table
 	{
 	    $today = new DateTime();
 	    $today = $today->format('Y-m-d');
-	    $retval = array();
-	    $queryArr = array();
-	    $this->addTerm($queryArr, "category", "=", $category);
-	    $this->addTerm($queryArr, "start", ">=", $today);
-	    $query = $this->readQuery(
-		$queryArr,
-		array("start" => "ASC"),
-		array("id", "start"),
-		"DISTINCT");
-	    if (!$query) return $retval;
+	    $retVal = array();
+	    $this->addTerm("category", "=", $category);
+	    $this->addTerm("start", ">=", $today);
+	    $this->addOrderTerm("start", "ASC");
+	    $query = $this->readQuery();
+	    if (!$query) return $retVal;
         $oldReturnHTML = $this->returnHTML;
         $this->returnHTML = true;
 	    while ($row = $this->fetch_assoc($query))  {
-		  array_push($retval, $row);
+		  array_push($retVal, $row);
 	    }
         $this->returnHTML = $oldReturnHTML;    
-	    return $retval;
+	    return $retVal;
 	}
 
+    /**
+     * @param $id: id of the event
+     * @param $start: eraliest startdate
+     * @return array calendar records
+     */
 	public function getAllFrom($id, $start)
 	{
-	    $retval = array();
-	    $query = $this->readQuery(
-		array(
-		    array("col"=>"id", "oper"=>"=", "val"=>"$id"),
-		    array("col"=>"start", "oper"=>">=", "val"=>"$start")
-		),
-		array("start" => "ASC")
-	    );
-	    if (!$query) return $retval;
+	    $retVal = array();
+
+        $this->addTerm("id", "=", $id);
+		$this->addTerm("start", ">=", "$start");
+		$this->addOrderTerm("start", "ASC");
+
+	    $query = $this->readQuery();
+	    if (!$query) return $retVal;
         $oldReturnHTML = $this->returnHTML;
         $this->returnHTML = true;
-	    while ($row = $this->fetch_assoc($query)) {
-		array_push($retval, $row);
-	    }
+        while ($row = $this->fetch_assoc($query)) {
+            array_push($retVal, $row);
+        }
         $this->returnHTML = $oldReturnHTML;
-	    return $retval;
+        return $retVal;
 	}
 
+    /**
+     * select all ids of upcoming events
+     * @param $start: string minimum date in selection
+     * @return array (id= Event Id, start= Earliest date for id, count=nr of calendar events for this event
+     */
 	public function getEventsFromCalendar(
 	    $start)
 	{
-	    $retval = array();
-	    $cmd = "SELECT id, ".
-		"MIN(start) start, ".
-		"COUNT(id) count ".
-		"FROM ".SQL_TBCALENDAR." ".
-		"WHERE start >= \"$start\" ".
-		"GROUP BY id ".
-		"ORDER by start ASC";
-	    $result = mysql_query($cmd);
-	    if (!$result) {
-		$this->tbError(NULL);
-		return $retval;
-	    }
+	    $retVal = array();
+	    $this->addTerm("start", ">=", $start);
+	    $this->addColumns("id", "MIN(start) start", "COUNT(id) count");
+	    $this->addOrderTerm("start",  "ASC");
+	    $this->addGroupTerm("id");
+	    $sth = $this->readQuery();
+
         $oldReturnHTML = $this->returnHTML;
         $this->returnHTML = true;
-	    while ($row = $this->fetch_assoc($query)) {
-            array_push($retval, $row);
+	    while ($row = $this->fetch_assoc($sth)) {
+            array_push($retVal, $row);
 	    }
         $this->returnHTML = $oldReturnHTML;
-	    return $retval;
+	    return $retVal;
 	}
 
-	public function getEventList($id)
+    /**
+     * @param $id: int event id
+     * @return array|bool all calendar records for id or failure
+     */
+	public function getEventCalendar($id)
 	{
-		$result = $this->readSelect(Array(
-			"id" => $id));
-		if (!$result) return false;
+	    $this->addTerm("id", '=', $id);
+		$sth = $this->readQuery();
+		if (!$sth) return false;
 		$retVal = Array();
-		while ($row = mysql_fetch_assoc($result)) {
-		    array_push($retval, $row);
+		while ($row = $this->fetch_assoc($sth)) {
+		    array_push($retVal, $row);
 		}
 		return $retVal;
 	}
 
+    /**
+     * @param $included: array categories to include in the list, take all when empty
+     * @param $excluded: array categories to exclude from the list, exclude none when empty
+     * @param $start: string valid sql date time minimum start time
+     * @param $order: array of columns to order by (ASC)
+     * @return array
+     */
+    public function getCategoryCalendar($included, $excluded, $start, $order)
+    {
+        $this->initQuery();
+        if (count($included)) {
+            $this->addTerm("category", "IN", $included);
+        }
+        if (count($excluded)) {
+            $this->addTerm("category", "NOT IN", $excluded);
+        }
+        if ($start != "") {
+            $this->addTerm("start", ">=", $start);
+        }
+        foreach ($order as $column) {
+            $this->addOrderTerm($column, "ASC");
+        }$result = $this->readQuery();
+        $retVal = array();
+        if ($result) {
+            $retVal = $this->fetch_assoc_all($result);
+        }
+        return $retVal;
+    }
+
+    /**
+     * delete calendar entries for id
+     * @param $id int event id
+     * @return mixed true = success
+     */
 	public function deleteAllFromEvent($id)
 	{
-	    return $this->deleteMany(array("id" => $id));
+        $this->addTerm("id", '=', $id);
+	    return $this->deleteMany();
 	}
 }
 
-?>
+

@@ -4,6 +4,7 @@
 	feb 2011 Huug Peters
 	01-04-2011 : huug : fixed volgendeTraining
 */
+// TODO: obsolete
 	function eersteTraining()
 	{
 		$today = localtime(time(), true);

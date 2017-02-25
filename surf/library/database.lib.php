@@ -20,33 +20,28 @@
 
 class DATABASE
 {
-	private $DBLINK = NULL;
-
-	function DATABASE()
+    /**
+     * DATABASE constructor.
+     */
+    function DATABASE()
 	{
-		$this->DBLINK =
-			@mysql_connect(
-				SQL_DBHOST,
-				SQL_DBUSER,
-				SQL_DBPSWD);
-		if ($this->DBLINK) {
-			mysql_select_db(SQL_DBASE);
-		} else {
-			genSetError(mysql_error());
+		$pdo = null;
+        try {
+        	$dsn = sprintf('mysql:dbname=%s;host=%s', SQL_DBASE, SQL_DBHOST);
+            $pdo = new PDO ($dsn,
+                    SQL_DBUSER,
+                    SQL_DBPSWD);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+        } catch (exception $e) {
+        	genLogVar(__FUNCTION__." PDO error ", $e->getMessage());
 		}
-	}
-
-	function close()
-	{
-		if ($this->DBLINK) {
-			mysql_close($this->DBLINK);
-			$this->DBLINK = NULL;
-		}
+		return $pdo;
 	}
 
 	function isConnected()
 	{
-		return ($this->DBLINK);
-	}
+		return (array_key_exists('dbLink', $_SESSION) && $pdo != null);
+    }
 }
 ?>

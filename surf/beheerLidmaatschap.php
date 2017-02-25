@@ -50,32 +50,40 @@ class beheerLidmaatschap
     function findUsersAndRoles($search)
     {
         if (!count($search)) {
-            $search["id"] = $_SESSION["user"]["id"];
+            $search["id"] = $this->userSession->getUserAttr("id");
         }
-        $result = $this->users->readSelect($search);
+        $this->users->initQuery();
+        foreach ($search as $column => $value) {
+            $this->users->addTerm($column, "=", $value);
+        }
+        $result = $this->users->readQuery();
         if (!$result)
             return false;
-        if (0 == mysql_num_rows($result)) {
+        $retVal = array();
+
+        $users = array();
+        while ($user = $this->users->fetch_assoc($result)) {
+            array_push($users, $user);
+        }
+        if (count($users)) {
             $msg = "Geen gegevens gevonden: ";
             foreach ($search as $key => $val) {
                 $msg .= " $key=$val";
             }
-            genSetError($message);
+            genSetError($msg);
             return false;
         }
-        $retVal = array();
-        while ($user = mysql_fetch_assoc($result)) {
+        while ($user = array_shift($users)) {
             $roles = $this->userRoles->getRoles($user["id"]);
             if (!$roles)
                 $roles = array();
             array_push($retVal, array("user" => $user, "roles" => $roles));
         }
         if ($this->userSession->hasRole(ROLE_SYSTEM)) {
+            $this->users->initQuery();
             $result = $this->users->readQuery();
-            while ($user = mysql_fetch_assoc($result)) {
+            while ($user = $this->users->fetch_assoc($result)) {
                 $roles = array();
-                if (!$roles)
-                    $roles = array();
                 array_push($retVal, array("user" => $user, "roles" => $roles));
             }
         }
@@ -176,12 +184,16 @@ class beheerLidmaatschap
             genSetError("Nieuw wachtwoord en controle zijn niet gelijk");
             return false;
         }
-        $search = array("id" => $data["oldId"]);
-        $result = $this->users->readSelect($search);
+        $this->users->initQuery();
+        $this->users->addTerm("id", '=', $data["oldId"]);
+        $result = $this->users->readQuery();
         if (!$result)
             return false;
-        if (mysql_num_rows($result) == 0) {
-            genSetError("Gebuiker niet gevonden: " . $data["oldId"]);
+        $users = $this->users->fetch_assoc_all($result);
+        $nrFound = count($users);
+        if ($nrFound != 1) {
+            genSetError("Gebuiker ".
+                ($nrFound? $nrFound."x" :"niet")." gevonden: " . $data["oldId"]);
             return false;
         }
         if (!$this->userSession->hasRole(ROLE_SYSTEM)) {
@@ -190,7 +202,7 @@ class beheerLidmaatschap
                 genLogVar(__function__ . ": Wachtwoord kan niet worden gewijzigd " . $data["oldId"]);
                 return false;
             }
-            $oldUser = $this->users->fetch_assoc($result);
+            $oldUser = array_shift($users);
             if (strlen($oldUser["wachtwoord"])) {
                 if (password_verify($data["oldWachtwoord"])) {
                     genSetError("Het oude wachtwoord klopt niet");
@@ -208,7 +220,7 @@ class beheerLidmaatschap
     {
         if ($this->users->update(array("id" => $data["oldId"]), array("wachtwoord" => $data["newWachtwoord"],
                 "modifiedby" => $this->userSession->getUserId()))) {
-            genSetError("Wachtwoord gewijzigd");
+            genSetInfo("Wachtwoord gewijzigd");
         }
     }
 

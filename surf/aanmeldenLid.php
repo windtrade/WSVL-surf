@@ -114,7 +114,7 @@ class aanmeldenLid
         $contact["message"] .= $fd["contact"]["message"];
         if ($contact["message"] == "")
             return;
-        $this->contact->insert($contact);
+        $this->contact->store($contact);
         $fd["contact"]["id"] = $this->contact->getLastId();
     }
 

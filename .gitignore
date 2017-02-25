@@ -1,3 +1,9 @@
+.gitignore
+.git/*
+surf/.gitignore
+surf/.idea
 surf/library/Foo.java
 surf/javascript/~general.js.htm
 surf/library/Foo.java
+ParseDown/*
+Smarty/*

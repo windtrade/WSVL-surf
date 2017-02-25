@@ -60,7 +60,7 @@ function checkAuthority($uS)
 }
 
 $uS = new userSession();
-$hE = new htmlelements();
+$hE = new htmlElements();
 switch ($_REQUEST["action"]) {
     case "JSONlogin":
         $uS->JSONlogin();

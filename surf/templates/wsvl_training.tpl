@@ -40,13 +40,13 @@ Daarom vragen we je het formulier in te vullen als je van plan bent om te komen.
 {if $currentUserId < 0 or count($userList)==0}
 <table>
 <tr><td><strong>Roepnaam</strong></td>
-<td><input type="text" size="30" name="fd[user][roepnaam]"></td></tr>
+<td><input type="text" size="30" name="fd[user][roepnaam]"/></td></tr>
 <tr><td><strong>Voorvoegsel</strong></td>
-<td><input type="text" size="30"  name="fd[user][voorvoegsel]"></td></tr>
+<td><input type="text" size="30"  name="fd[user][voorvoegsel]"/></td></tr>
 <tr><td><strong>Achternaam</strong></td>
-<td><input type="text" size="30" name="fd[user][naam]"></td></tr>
+<td><input type="text" size="30" name="fd[user][naam]"/></td></tr>
 <tr><td><strong>Email</strong></td>
-<td><input type="text" size="30" name="fd[user][email]"></td></tr>
+<td><input type="text" size="30" name="fd[user][email]"/></td></tr>
 <tr><td colspan="2">(Als je 18- bent: van een ouder/verzorger)</td></tr>
 {if $NOROBOT != "OK"}
 <tr>{HFrecaptcha}</tr>

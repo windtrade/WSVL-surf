@@ -129,8 +129,9 @@ function testGenGetArrayFromArray()
 function testMakeWhereClause()
 {
 	$users = new users();
-	$whereArr = array ( "rel_nr" => "10" );
-	$result = $users->readSelect($whereArr);
+	$users->initQuery();
+	$users->addTerm("rel_nr", "=", "10" );
+	$result = $users->readQuery();
 	genSetError('$result='.print_r($result, true));
 	genSmartyDisplay('templates/wvLeidschendam.tpl');
 }

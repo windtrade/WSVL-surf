@@ -4,21 +4,23 @@ error_reporting(E_ALL);
 // It works better than $docRoot, because that 
 // points at <server>/~<domain owner>/public_html when you 
 // don't use the regular subdomain name to access the pages
-$docRoot = preg_replace('/[^\/]*\/[^\/]*$/', '', __FILE__);
+$rootRegex = '/[^\\'.DIRECTORY_SEPARATOR.']*\\'.DIRECTORY_SEPARATOR.'[^\\'.DIRECTORY_SEPARATOR.']*$/';
+$docRoot = preg_replace($rootRegex, '', __FILE__);
 // Define the place of libraries here
 // Make it a string of separated pathnames
 // set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 set_include_path(get_include_path() .
-PATH_SEPARATOR . $docRoot."/library".
-PATH_SEPARATOR . $docRoot."/../ParseDown".
-PATH_SEPARATOR . $docRoot."/../Smarty/libs");
+PATH_SEPARATOR . $docRoot.DIRECTORY_SEPARATOR."library".
+PATH_SEPARATOR . $docRoot.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."ParseDown".
+PATH_SEPARATOR . $docRoot.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."Smarty".DIRECTORY_SEPARATOR."libs");
 // All constant values get defined here:
 define("GEN_PASSWORD_COST", "10");
 define("DEFAULT_TEMPLATE", "wvleidschendam.tpl");
-define("FILE_UPLOAD_DIR", $docRoot."/../files/");
+define("FILE_UPLOAD_DIR", $docRoot.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."files/");
 define("IMAGE_ROOT_URL", "http://surf.wvleidschendam.nl/images/");
-define("IMAGE_FILE_ROOT", $docRoot."/../surf/images/");
-define("JAVASCRIPT_DIR", "javascript/");
+define("IMAGE_FILE_ROOT", $docRoot.DIRECTORY_SEPARATOR.
+    "..".DIRECTORY_SEPARATOR."surf".DIRECTORY_SEPARATOR."images".DIRECTORY_SEPARATOR."");
+define("JAVASCRIPT_DIR", "javascript".DIRECTORY_SEPARATOR);
 
 # time out in minutes
 define("SESSION_TIMEOUT", 10);
@@ -29,11 +31,14 @@ define("STYLESHEET_DIR", "css/");
 define("STYLESHEET_0", STYLESHEET_DIR."general.css");
 define("JAVASCRIPT_INTERNAL_DIR", $docRoot."/".JAVASCRIPT_DIR);
 
-define("SQL_DBASE", "wvleid01_surfclub");
-define("SQL_DBUSER", "wvleid01_surf");
-define("SQL_DBPSWD", "uAzMZ4kd");
-define("SQL_DBHOST", "localhost");
-
+//define("SQL_DBASE", "wvleid01_surfclub");
+//define("SQL_DBUSER", "wvleid01_surf");
+//define("SQL_DBPSWD", "uAzMZ4kd");
+//define("SQL_DBHOST", "localhost");
+define("SQL_DBASE", "surf");
+define("SQL_DBUSER", "root");
+define("SQL_DBPSWD", "kl@dbl0k");
+define("SQL_DBHOST", "127.0.0.1:3306");
 define("RECAPTCHA_API", "https://www.google.com/recaptcha/api.js");
 define("RECAPTCHA_SECRET", "6Le2twETAAAAAON47QO8i_gulAZfJGCofJPQvUE7");
 define("RECAPTCHA_SITE",   "6Le2twETAAAAACBtab8pq02ShjA8ex-3KV4-RXoA");
@@ -79,8 +84,6 @@ $USER_ROLES = array(
     "MEMBER" => 0,
     "MEMBERADMI" => 0,
     "EDITOR" => 0);
-
-$NAVIGATION_BASE = $_SERVER["SERVER_NAME"];
 
 if (!array_key_exists('tab', $_REQUEST)) {
     // by default tab will be page name

@@ -6,11 +6,31 @@
  *
  * 21-04-2012 : Huug	: Creation
  */
+require_once "general.lib.php";
 require_once "table.lib.php";
 
 class user_roles extends table
 {
 	private $tbDefine="SQL_TBUSER_ROLES";
+
+    protected $structure = array(
+        "user_id" => array(
+            "label" => "ID",
+            "default" => "",
+            "role" => "public",
+            "mandatory" => "0",
+            "type" =>  "number",
+            "protected" => "1",
+            "check" => ""),
+        "role" => array(
+            "label" => "Rol",
+            "default" => "MEMBER",
+            "role" => "system",
+            "mandatory" => "0",
+            "type" =>  "text",
+            "protected" => "1",
+            "check" => "")
+	);
 
 	public function __construct()
 	{
@@ -24,15 +44,11 @@ class user_roles extends table
 
 	public function getUsersWithRoles($role)
 	{
-	    $cmd = "select user_id from ".SQL_TBUSER_ROLES." where ".
-		"role = '$role'";
-	    $result = mysql_query($cmd);
+		$sth = $this->readSelect(array("role" => $role));
 	    $retval = array();
-	    if ($result) {
-		while ($row=mysql_fetch_assoc($result))
+	    $rows = $this->fetch_assoc_all($sth);
+		while ($row=array_shift($rows)) {
 		    array_push($retval, $row["user_id"]);
-	    } else {
-		$this->tbError(NULL);
 	    }
 	    return $retval;
 	}
@@ -42,68 +58,55 @@ class user_roles extends table
 		$result = $this->readSelect(Array(
 			"user_id" => $user_id,
 			"role" => $role));
-		if (!$result) return false;
-		return (0 < mysql_num_rows($result));
+		return (0 < count($this->fetch_assoc_all($result)));
 	}
-		
+
+    /**
+     * @param $user_id
+     * @return array(["user-id'] => user_id, ['role 1'] =>"role 1" {, ...}
+     */
 	public function getRoles($user_id)
 	{
-		$result = $this->readSelect(Array(
+		$sth = $this->readSelect(Array(
 			"user_id" => $user_id));
-		if (!$result) return false;
+		$roles = $this->fetch_assoc_all($sth);
 		$retVal = Array("user_id" => $user_id);
-		while ($row = mysql_fetch_assoc($result)) {
+		while ($row = array_shift($roles)) {
 		    $retVal[$row["role"]]=$row["role"];
 		}
 		return $retVal;
 	}
 
 	public function deleteAll($id)
-	{
-	    $result = $this->readSelect(
-		array( "user_id" => $id));
-	    if (!$result) return;
-	    $roles = array();
-	    while ($role = mysql_fetch_assoc($result)) {
-		array_push($roles, $role);
-	    }
-	    while ($role = array_shift($roles)) {
-		if (!$this->delete($role)) {
-		    return false;
-		}
-	    }
-	    return true;
-	}
+    {
+        $roles = $this->getSelect(
+            array( "user_id" => $id));
+        while ($role = array_shift($roles)) {
+            if (!$this->delete($role)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	public function insert($new)
+	public function insert($arr)
 	{
 		global $USER_ROLES;
-		if (!array_key_exists($new["role"], $USER_ROLES)) {
-			genSetError("De rol '".$new["role"]."' is niet gedefinieerd");
+		if (!array_key_exists($arr["role"], $USER_ROLES)) {
+			genSetError("De rol '".$arr["role"]."' is niet gedefinieerd");
 			return false;
 		}
-		if ($this->hasRole($new["user_id"], $new["role"])) {
+		if ($this->hasRole($arr["user_id"], $arr["role"])) {
 			return true;
 		}
-		return parent::insert($new);
+		return parent::insert($arr);
 	}
 
-	public function update($old, $new)
-	{
-		global $USER_ROLES;
-		if (!array_key_exists($new["role"], $USER_ROLES)) {
-			genSetError("De rol '".$new["role"]."' is niet gedefinieerd");
-			return false;
-		}
-		if ($this->hasRole($old["user_id"], $old["role"])) {
-			if (!parent::delete($old)) {
-				return false;
-			}
-		}
-		if (!$this->hasRole($new["user_id"], $new["role"])) {
-			return parent::insert($new);
-		}
-		return true;
-	}
+	public function definedRoles() {
+	    global $USER_ROLES;
+	    $all = array_merge($USER_ROLES);
+	    $defined = array_keys($all);
+	    return $defined;
+    }
 }
 ?>

@@ -30,39 +30,25 @@ class informatie
 
     public function getTeksten()
     {
-        $nrs = array(20, 19); // standaard: club en geschiedenis
-        $tab = "";
-        if (array_key_exists("tab", $_REQUEST)) {
-            $tab = $_REQUEST["tab"];
-        }
-        if (strtolower($tab) == "surfpool")
-            $nrs = array(
-                22,
-                32,
-                28);
-        elseif (strtolower($tab) == "surfles") {
-            $nrs = array(24, 28);
-            $data = $this->getData(general::INSTRUCTION);
-        } elseif (strtolower($tab) == "wedstrijden") {
-            $nrs = array(
-                7,
-                8,
-                9);
-        } elseif (strtolower($tab) == "tarieven") {
-            $nrs = array(31);
-        } elseif (strtolower($tab) == "gww") {
-            $nrs = array(21, 28);
-        }
+        $nrs = array(
+            "" => array(20, 19), // standaard: club en geschiedenis
+            "surfpool" => array( 22, 32, 28),
+            "surfles" => array(24, 28),
+            "wedstrijden" => array( 7, 8, 9),
+            "tarieven" => array(31),
+            "gww" => array(21, 28)
+        );
+        $tab =  (array_key_exists("tab", $_REQUEST)? strtolower($_REQUEST["tab"]): "");
+        $tab =  (array_key_exists("tab", nrs)? $tab: "");
         $teksten = array();
-        foreach ($nrs as $nr) {
-            if ($tekst = $this->teksten->getTekst($nr)) {
-                array_push($teksten, $tekst);
-            }
+        foreach ($nrs["tab"] as $nr) {
+            $tekst = $this->teksten->getTekst($nr);
+            if ($tekst) array_push($teksten, $tekst);
         }
         return $teksten;
     }
 
-    public function makeObjects()
+    public function __construct()
     {
         $this->calendar = new Calendar();
         $this->event = new event();
@@ -118,7 +104,7 @@ class informatie
         if (!$hasRegistration) {
             genLogVar(__function__ . " hasRegistration:", ($hasRegistration ? "TRUE" :
                 "FALSE"));
-            genSetError("Geef één of meer data op");
+            genSetError("Geef ï¿½ï¿½n of meer data op");
             return false;
         }
         $fd["user"]["lidsoort"] = "STARTER";
@@ -170,7 +156,7 @@ class informatie
         if (!$result)
             return $retval;
         $lastId = -1;
-        while ($row = mysql_fetch_assoc($result)) {
+        while ($row = $this->calendar->fetch_assoc($result)) {
             if ($row{"id"} != $lastId) {
                 $lastId = $row{"id"};
                 $retval[$lastId] = array("calendar" => array());
@@ -264,9 +250,13 @@ class informatie
             }
             foreach ($data["calendar"] as $calendar) {
                 $enrolled = 0;
+                $disabled = 0;
                 if (array_key_exists($calendar["start"], $fd["eventRegister"][$id])) {
                     $enrolled = 1;
                 }
+                $start = new DateTime($start);
+                $today = new DateTime();
+                $today.
                 array_push($result["eventRegister"][$id], $this->makeFormElement($id, $calendar["start"],
                     $enrolled));
             }
@@ -277,7 +267,7 @@ class informatie
     /*
     * build a assoc array with elements for a single checkbox
     */
-    private function makeFormElement($id, $start, $checked)
+    private function makeFormElement($id, $start, $checked, $disabled)
     {
         $dt = new DateTime($start);
         $label = $dt->format("d-m-Y");
@@ -285,7 +275,8 @@ class informatie
         return array(
             "label" => $label,
             "name" => $name,
-            "checked" => $checked);
+            "checked" => $checked,
+            "disabled" => $disabled);
     }
 
     public function getData($fd)
@@ -297,7 +288,7 @@ class informatie
         return $data;
     }
 
-    public function __construct()
+    public function display()
     {
         $this->makeObjects();
         $this->eventList = $this->getEventList(general::INSTRUCTION, date("Y-01-01 00:00"));
@@ -310,4 +301,4 @@ class informatie
     }
 }
 
-$something = new informatie();
+(new informatie())->display();

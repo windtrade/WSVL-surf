@@ -28,9 +28,9 @@ function buildNewsItem($newsObj, &$newsArr)
         genSetError("Geen nieuwsbericht gekozen");
         return;
     }
-    $newsKey["news_id"] = $_REQUEST["news_id"];
+    $newsObj->addTerm("news_id", '=', $_REQUEST["news_id"]);
 
-    $result = $newsObj->readSelect($newsKey);
+    $result = $newsObj->readQuery();
     if (!$result) {
         genSetError("Nieuwsbericht niet gevonden");
         return;

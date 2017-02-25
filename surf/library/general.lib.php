@@ -9,10 +9,13 @@
 
 require_once "database.lib.php";
 require_once "htmlforms.lib.php";
-require_once "htmlelements.lib.php";
+require_once "htmlElements.lib.php";
 require_once "Smarty.class.php";
 require_once "Parsedown.php";
 require_once "teksten.lib.php";
+
+/* Global PDO Database connection */
+$pdoGlobal = null;
 /**
  * general
  * 
@@ -22,6 +25,7 @@ require_once "teksten.lib.php";
  * @version $Id$
  * @access public
  */
+
 class general
 {
     private $errors = array();
@@ -32,7 +36,7 @@ class general
     private $smarty;
     private $parsedown;
     private $htmlforms;
-    private $htmlelements;
+    private $htmlElements = false;
     private $db;
     private $formStep = 0;
     private $action;
@@ -61,7 +65,9 @@ class general
         }
         if (!array_key_exists('loggedIn', $_SESSION))
             $_SESSION['loggedIn'] = 0;
-        $this->action = "http://" . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'];
+        if (array_key_exists('SERVER_NAME', $_SERVER)) {
+            $this->action = "http://" . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'];
+        }
         if (!isset($our_timezone))
             $our_timezone = "Europe/Amsterdam";
         if (!date_default_timezone_set($our_timezone)) {
@@ -70,7 +76,6 @@ class general
         $this->smarty = new Smarty();
         $this->parsedown = new Parsedown();
         $this->htmlforms = new htmlforms();
-        $this->htmlelements = new htmlelements();
         $this->teksten = new Teksten();
     }
 
@@ -222,6 +227,7 @@ class general
                         break;
                     case "image":
                         $val = DEFAULT_OG_IMAGE;
+                        continue;
                 }
             }
             $val = preg_replace('/<[^>]>/', '', $val);
@@ -252,6 +258,9 @@ class general
         $this->addJavascriptFile(JQUERY_SRC);
         $this->addJavascriptFile(RECAPTCHA_API);
         #$this->addJavascriptFile("jquery-ui-1.10.0.custom.min");
+        if (!$this->htmlElements) {
+            $this->htmlElements = new htmlElements();
+        }
         $this->smarty->registerPlugin('function', 'HFform', array($this->htmlforms,
                 'HFform'));
         $this->smarty->registerPlugin('function', 'HFlabeledField', array($this->
@@ -263,18 +272,18 @@ class general
         $this->smarty->registerPlugin('function', 'HFreset', array($this->htmlforms,
                 'HFreset'));
         $this->smarty->registerPlugin('function', 'HEelement', array($this->
-                htmlelements, 'HEelement'));
-        $this->smarty->registerPlugin('function', 'HEanchor', array($this->htmlelements,
+                htmlElements, 'HEelement'));
+        $this->smarty->registerPlugin('function', 'HEanchor', array($this->htmlElements,
                 'HEanchor'));
-        $this->smarty->registerPlugin('function', 'HEimage', array($this->htmlelements,
+        $this->smarty->registerPlugin('function', 'HEimage', array($this->htmlElements,
                 'HEimage'));
-        $this->smarty->registerPlugin('function', 'HEtext', array($this->htmlelements,
+        $this->smarty->registerPlugin('function', 'HEtext', array($this->htmlElements,
                 'HEtext'));
         $this->smarty->registerPlugin('function', 'HEcssmenu', array($this->
-                htmlelements, 'HEcssmenu'));
+                htmlElements, 'HEcssmenu'));
         $this->smarty->registerPlugin('function', 'HEbuildURI', array($this->
-                htmlelements, 'HEbuildURI'));
-        $this->smarty->registerPlugin('function', 'HEsocial', array($this->htmlelements,
+                htmlElements, 'HEbuildURI'));
+        $this->smarty->registerPlugin('function', 'HEsocial', array($this->htmlElements,
                 'HEsocial'));
         $this->smarty->assign("template", $template);
         $this->smarty->assign('imageRoot', IMAGE_ROOT_URL);
@@ -398,7 +407,6 @@ class general
 
 $general = new general();
 
-
 # Returns an url with session ID, when necessary.
 # That is, when no session copokie is available;
 function genSessionUrl($url)
@@ -511,6 +519,7 @@ function genSetDatabase($db)
     global $general;
     return $general->setDatabase($db);
 }
+
 function genDBConnected()
 {
     global $general;
@@ -535,7 +544,7 @@ function genTrace()
         $nrArgs = func_num_args();
         $allArgs = func_get_args();
         $msg = "";
-        while (count($args) > 1) {
+        while (count($nrArgs) > 1) {
             $msg .= array_shift($args) . "=";
             $msg .= print_r(array_shift($args), true) . "\n";
         }
@@ -573,7 +582,7 @@ function genGetArrayFromArray($srcArr, $label)
     $arr = array();
     if (!is_Array($srcArr)) {
         genSetError(__function__ . ": 1st argument must be array");
-        return $arr();
+        return $arr;
     }
     $match = "/^" . $label . "_" . "/";
     foreach ($srcArr as $key => $val) {
@@ -865,28 +874,53 @@ function hidePasswords(&$var)
     }
 }
 
-// Write to public_html/files/logYYYYMMDD.txt
-function genLogVar($name, $var)
-{
-    $class = __class__ . "";
-    if (strlen($class) == 0)
-        $class = "NOCLASS";
-    hidePasswords($var);
-    $text = "(" . $_SERVER["REMOTE_ADDR"] . ") " . $class . ": " . $name . "=" .
-        print_r($var, true);
-    $label = __file__;
+function genURI() {
+    return (array_key_exists("REQUEST_URI", $_SERVER)? $_SERVER["REQUEST_URI"]: "REQUEST_URI");
+}
+
+function genLogWrite() {
+    $label = __FILE__;
     $label = preg_replace('/(public_html)(.).*/', '$1$2files$2log_', $label);
     $dt = new DateTime();
     $label .= $dt->format('Ymd') . '.txt';
-    $fh = fopen($label, 'a');
-    if (!$fh) {
-        genSetError("Unable to open $label ");
-        return;
+    $fh = false;
+    try {
+        $fh = fopen($label, 'a');
+    } catch (Exception $e) {
+        error_log($e->getMessage(), 0);
     }
-    fwrite($fh, $dt->format("d-m-Y H:i:s ==> "));
-    fwrite($fh, $_SERVER["REQUEST_URI"] . "\n");
-    fwrite($fh, $text . "\n");
-    fclose($fh);
+    $allArgs = func_get_args();
+    while($line = array_shift($allArgs)) {
+        $output = $dt->format("d-m-Y H:i:s ==> ").genURI()." ".$line;
+        if ($fh) {
+            fwrite($fh, $output."\n");
+        } else {
+            error_log($output, 0);
+        }
+    }
+    if ($fh) {
+        fclose($fh);
+    }
+}
+
+// Write to public_html/files/logYYYYMMDD.txt
+function genLogVar($name, $var)
+{
+    $args = func_get_args();
+    if (count ($args)) return;
+    $name = array_shift($args);
+    $class = __CLASS__ . "";
+    if (strlen($class) == 0)
+        $class = "NOCLASS";
+    hidePasswords($var);
+    $source = array_key_exists("REMOTE_ADDR", $_SERVER)? $_SERVER["REMOTE_ADDR"]: "no server";
+    $text = "(" . $source . ") " . $class . ": " . $name;
+    if (count(args)) $text .= "=";
+    while (count($args)) {
+        $text .= (print_r($var, true))."\n";
+    };
+    genLogWrite(
+        $text);
 }
 
 function genCurPageURL()
@@ -900,36 +934,38 @@ function genCurPageURL()
     }
     $pageURL .= "://";
 
-    $pageURL .= $_SERVER["SERVER_NAME"];
-    if ($_SERVER["SERVER_PORT"] != "80") {
-        $pageURL .= ":" . $_SERVER["SERVER_PORT"];
-    }
-    $elts = explode('?', $_SERVER["REQUEST_URI"]);
-    $pageURL .= array_shift($elts); // now only arguments are left
-    $args = explode('&', implode('?', $elts));
-    $params = array();
-    foreach ($args as $arg) {
-        $elts = explode('=', $arg);
-        if (count($elts)) {
-            $params[$elts[0]] = (count($elts) > 1 ? $elts[1] : "");
+    if (array_key_exists("SERVER_NAME", $_SERVER)) {
+        $pageURL .= $_SERVER["SERVER_NAME"];
+        if ($_SERVER["SERVER_PORT"] != "80") {
+            $pageURL .= ":" . $_SERVER["SERVER_PORT"];
         }
-    }
-    for ($i = 0; $i < $nrArgs; $i++) {
-        if (is_array($allArgs[$i])) {
-            foreach ($allArgs[0] as $key => $val) {
+        $elts = explode('?', $_SERVER["REQUEST_URI"]);
+        $pageURL .= array_shift($elts); // now only arguments are left
+        $args = explode('&', implode('?', $elts));
+        $params = array();
+        foreach ($args as $arg) {
+            $elts = explode('=', $arg);
+            if (count($elts)) {
+                $params[$elts[0]] = (count($elts) > 1 ? $elts[1] : "");
+            }
+        }
+        for ($i = 0; $i < $nrArgs; $i++) {
+            if (is_array($allArgs[$i])) {
+                foreach ($allArgs[0] as $key => $val) {
+                    $params[$key] = $val;
+                }
+            } else {
+                list($key, $val) = explode('=', $allArgs[$i]);
                 $params[$key] = $val;
             }
-        } else {
-            list($key, $val) = explode('=', $allArgs[$i]);
-            $params[$key] = $val;
         }
-    }
-    $elts = array();
-    foreach ($params as $key => $val) {
-        array_push($elts, "$key=" . urlencode(urldecode($val)));
-    }
-    if (count($elts)) {
-        $pageURL .= "?" . implode('&', $elts);
+        $elts = array();
+        foreach ($params as $key => $val) {
+            array_push($elts, "$key=" . urlencode(urldecode($val)));
+        }
+        if (count($elts)) {
+            $pageURL .= "?" . implode('&', $elts);
+        }
     }
     return $pageURL;
 }
@@ -1072,6 +1108,7 @@ function genGetMustLogin()
     $nrArgs = func_num_args();
     $allArgs = func_get_args();
     if ($nrArgs == 0) {
+        if (!array_key_exists("REQUEST_URI", $_SERVER)) return false;
         $uri = $_SERVER["REQUEST_URI"];
     } else {
         $uri = $allArgs[0];
@@ -1139,6 +1176,35 @@ function genGetParticipantNames($eventRegister, $users, $eventID, $start)
         }
     }
     return $names;
+}
+
+/**
+ *
+ * @param $arr
+ * @param $xtra
+ */
+function genArrayMergeOrPush(&$arr, $xtra)
+{
+    $numericArr = false;
+    foreach (array_keys($arr) as $key) {
+        if (is_numeric($key)) $numericArr = true;
+    }
+    if (is_array($xtra)) {
+        foreach (array_keys($xtra) as $key) {
+            if (is_numeric($key) != $numericArr) {
+                genLogVar(__FUNCTION__.": ", "cannot merge assoc and regular array \$arr".print_r($arr, true), $xtra );
+                throw new Exception("Incompatible Data, see log");
+            }
+        }
+        array_merge($arr, $xtra);
+        return;
+    }
+    if (!$numericArr) {
+        genLogVar(__FUNCTION__ . ": ", "cannot push scalar to assoc array \$arr" . print_r($arr, true), $xtra);
+        throw new Exception("Incompatible Data, see log");
+    }
+    array_push($arr, $xtra);
+    return;
 }
 
 /*

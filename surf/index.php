@@ -14,70 +14,86 @@ require_once "image.lib.php";
 require_once "news.lib.php";
 require_once "teksten.lib.php";
 
-function buildHotNews($newsObj)
+class Index
 {
-    $img = new image();
-    $hotNews = array();
-    $result = $newsObj->getHot();
-    if ($result) {
-	while ($item = mysql_fetch_assoc($result)) {
-	    if ($item["news_image"]) {
-		$item["news_image"] =
-		    $img->getUrl($item["news_image"], "small" );
-	    } else {
-		$item["news_image"] = "";
-	    }
-	    array_push( $hotNews, $item);
-	}
+    
+    private $news;
+    private $teksten;
+    function __construct()
+    {
+        $this->news = new News();
+        $this->teksten = new Teksten();
     }
-    genSmartyAssign("hotNews", $hotNews);
-    return $hotNews;
-}
-function buildAboutUs($tekstenObj)
-{
-	$result = $tekstenObj->readSelect(
-		array("id" => TEKSTEN_ID_ABOUT_US,
-		"rubriek_id" => TEKSTEN_RUBRIEK_ID_GENERAL));
-	if ($result) {
-		$item = mysql_fetch_assoc($result);
-	} else {
-		$item = array("tekst" => "Niet beschikbaar");
-	}
-	genSmartyAssign("aboutUs", $item["tekst"]);
+
+    function buildHotNews()
+    {
+        $img = new image();
+        $hotNews = array();
+        $result = $this->news->getHot();
+        if ($result) {
+            while ($item = $this->news->fetch_assoc($result)) {
+                if ($item["news_image"]) {
+                    $item["news_image"] =
+                        $img->getUrl($item["news_image"], "small" );
+                } else {
+                    $item["news_image"] = "";
+                }
+                array_push( $hotNews, $item);
+            }
+        };
+        return $hotNews;
+    }
+    function buildAboutUs()
+    {
+        $this->teksten->readSelect(array(
+            "id" => TEKSTEN_ID_ABOUT_US,
+            "rubriek_id" => TEKSTEN_RUBRIEK_ID_GENERAL));
+        $result = $this->teksten->readQuery();
+        if ($result) {
+            $items = $this->teksten->fetch_assoc_all($result);
+            $item = array_shift($items);
+        } else {
+            $item = array("tekst" => "Niet beschikbaar");
+        }
+        genSmartyAssign("aboutUs", $item["tekst"]);
+    }
+
+    function buildNewsList($hotNews)
+    {
+        $newsItems = array();
+        $result = $this->news->getPublic();
+        $hotIds = array();
+        foreach ($hotNews as $item) {
+            array_push($hotIds, $item['news_id']);
+        }
+        if ($result) {
+            while ((count($newsItems) < 20) && $item = $this->news->fetch_assoc($result)) {
+                if ($item["news_image"]) {
+                    $item["news_image"] =
+                        IMAGE_ROOT_URL."news/".
+                        $item["news_id"]."small.jpg";
+                } else {
+                    $item["news_image"] = "";
+                }
+                if (array_search($item["news_id"], $hotIds) === false) {
+                    array_push($newsItems, $item);
+                }
+            }
+        }
+        return $newsItems;
+    }
+
+    public function displayPage()
+    {
+        $hotNews = $this->buildHotNews();
+        $this->buildAboutUs();
+        $newsList = $this->buildNewsList($hotNews);
+        if (count($hotNews) == 0) {
+            array_push($hotNews, array_shift($newsList));
+        }
+        genSmartyAssign("newsItems", $newsList);
+        genSmartyDisplay('wsvl_Home.tpl');
+    }
 }
 
-function buildNewsList(&$newsObj, $hotNews)
-{
-	$newsItems = array();
-	$result = $newsObj->getPublic();
-	if ($result) {
-		while ($item = mysql_fetch_assoc($result)) {
-			if ($item["news_image"]) {
-				$item["news_image"] =
-					IMAGE_ROOT_URL."news/". 
-					$item["news_id"]."small.jpg";
-			} else {
-				$item["news_image"] = "";
-			}
-			for ($i = 0; $i < count($hotNews); $i++) {
-				if ($hotNews[$i]["news_id"] == $item["news_id"]) {
-					break;
-				}
-			}
-			if ($i >= count($hotNews)) array_push( $newsItems, $item);
-			# limited news list
-			if (count($newsItems) > 20) {
-			    break;
-			}
-		}
-	}
-	genSmartyAssign("newsItems", $newsItems);
-}
-
-$newsObj = new news();
-$tekstenObj = new teksten();
-$hotNews = buildHotNews($newsObj);
-buildAboutUs($tekstenObj);
-buildNewsList($newsObj, $hotNews);
-genSmartyDisplay('wsvl_Home.tpl');
-?>
+(new Index())->displayPage();
