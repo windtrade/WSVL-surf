@@ -1,13 +1,13 @@
 <?php
 #
-#  htmlelements: element processing for smarty templates
+#  htmlElements: element processing for smarty templates
 #  Huug Peters
 #  06-12-2013: creation
 #
 
 require_once "image.lib.php";
 require_once "userSession.lib.php";
-class htmlelements
+class htmlElements
 {
     private $image;
     private $userSession;
@@ -37,21 +37,17 @@ class htmlelements
 
     public function HEimage($p, &$smarty)
     {
-        $start = print_r($p, true);
-        if (!array_key_exists("id", $p))
+        if (!array_key_exists("id", $p)) {
             $p["id"] = 0;
-        $img = false;
-        if ($p["id"] > 0) {
-            $img = $this->image->get($p["id"]);
         }
         if (!array_key_exists("size", $p)) {
             $p["size"] = "small";
         }
-        ;
+        $img = $this->image->get($p["id"]);
         if ($img) {
             $src = image::getUrl($p["id"], $p["size"]);
         } else {
-            $src = image::imageNotFound($p["size"]);
+            $src = $this->image->imageNotFound($p["size"]);
             $img["description"] = "geen plaatje";
         }
         $result = '<img src="' . $src . '"';
@@ -65,7 +61,7 @@ class htmlelements
     {
         $attributes = "";
         $href = "#";
-        $inner = "Naar nergens";
+        $inner = "Link";
         foreach ($p as $key => $val) {
             switch (strtolower($key)) { 
             case "href":
@@ -75,14 +71,14 @@ class htmlelements
                 $inner = $val;
                 break;
             default:
-                $attributes .= " ".$key.'='.$val;
+                $attributes .= " ".$key.'='.'"'.$val.'"';
             }
         }
         $result = "";
         if ($href != "#" && !preg_match('/:\/\//', $href)) {
             $href = "http://" . $href;
         }
-        $pattern = '/^([^?]*)[?]*(.*)/';
+        $pattern = '/^([^?]*)[?]+(.*)/';
         $page = preg_replace($pattern, "$1", $href);
         $query = preg_replace($pattern, "$2", $href);
         $result .= "<a " . 'href="' . $page;
@@ -106,16 +102,15 @@ class htmlelements
             return "<!-- " . __function__ . ": invalid textId: " . $p["textId"] . " -->";
         }
         $text = genGetTekst($p["textId"]);
-        $result = "";
         if (!is_array($text)) {
-            $result .= "<!-- " . __function__ . ": Could not get " . $p["textId"] . " -->";
-        } else {
-            if (array_key_exists("titel", $text)) {
-                $result .= "<h1>" . $text["titel"] . "</h1>";
-            }
-            if (array_key_exists("tekst", $text)) {
-                $result .= $text["tekst"];
-            }
+            return "<!-- " . __function__ . ": Could not get " . $p["textId"] . " -->";
+        }
+        $result = "";
+        if (array_key_exists("titel", $text)) {
+            $result .= "<h1>" . $text["titel"] . "</h1>";
+        }
+        if (array_key_exists("tekst", $text)) {
+            $result .= $text["tekst"];
         }
         return $result;
     }
@@ -206,7 +201,7 @@ class htmlelements
         $uri = $_SERVER["REQUEST_URI"];
         foreach ($p as $key => $val) {
             if ($key == "keep") {
-                $keep = preg_split("/\s*[,]\s*/", $p["keep"]);
+                $keep = preg_split('/\s*[,]\s*/', $p["keep"]);
             } elseif ($key == "uri") {
                 $uri = $val;
             } else {
